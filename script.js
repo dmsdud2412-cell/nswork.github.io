@@ -13,7 +13,7 @@ window.onload = () => {
     loadAllData(); 
 };
 
-// 엑셀 버튼 생성
+// 엑셀 저장 버튼 (디자인 유지)
 function addExcelButton() {
     if (document.getElementById('btn-excel')) return;
     const container = document.getElementById('month-picker');
@@ -27,30 +27,16 @@ function addExcelButton() {
     container.appendChild(btn);
 }
 
-// [수정] 테이블을 못 찾는 문제 해결 버전
+// 엑셀 다운로드 (테이블 자동 감지)
 function downloadExcel() {
-    // ID가 없어도 화면에 있는 <table> 태그를 직접 찾습니다.
     const table = document.querySelector('table'); 
-    
-    if (!table) {
-        alert("화면에 출력된 표를 찾을 수 없습니다.");
-        return;
-    }
-
+    if (!table) { alert("화면에 출력된 표를 찾을 수 없습니다."); return; }
     const branchInfo = myBranch ? myBranch : "전체지점";
     const filename = `2026년_${currentMonth}월_근태현황_${branchInfo}.xls`;
-    
-    // 테이블 HTML 추출 (드롭다운 값 포함 처리)
     let html = table.outerHTML;
-    
     const uri = 'data:application/vnd.ms-excel;base64,';
-    const template = `
-        <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
-        <head><meta charset="UTF-8"></head>
-        <body>${html}</body></html>`;
-
+    const template = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"></head><body>${html}</body></html>`;
     const base64 = (s) => window.btoa(unescape(encodeURIComponent(s)));
-    
     const link = document.createElement('a');
     link.href = uri + base64(template);
     link.download = filename;
@@ -90,8 +76,17 @@ async function loadAllData() {
 }
 
 function renderTable(attendance) {
-    const titleEl = document.querySelector('h2') || document.getElementById('table-title');
-    if (titleEl) titleEl.innerText = `${currentMonth}월 근태 현황`;
+    // [보강된 제목 업데이트 로직]
+    // 1. 'table-title' 아이디를 가진 요소 찾기
+    // 2. 없으면 화면상의 h2 태그 찾기
+    // 3. 그것도 없으면 '근태 현황' 텍스트를 포함한 모든 태그 중 첫 번째 찾기
+    const titleEl = document.getElementById('table-title') || 
+                    document.querySelector('h2') || 
+                    Array.from(document.querySelectorAll('h1, h2, h3, div')).find(el => el.innerText.includes('근태 현황'));
+    
+    if (titleEl) {
+        titleEl.innerText = `${currentMonth}월 근태 현황`;
+    }
 
     const tbody = document.getElementById('attendance-body');
     const dateRow = document.getElementById('row-dates');
@@ -99,6 +94,8 @@ function renderTable(attendance) {
     const holidayRow = document.getElementById('row-holidays');
     const vRow = document.getElementById('row-vacation');
     const wRow = document.getElementById('row-working');
+
+    if(!tbody || !dateRow) return;
 
     tbody.innerHTML = ''; dateRow.innerHTML = ''; weekRow.innerHTML = ''; holidayRow.innerHTML = '';
     while(vRow.cells.length > 1) vRow.deleteCell(1);
