@@ -1,5 +1,9 @@
 const GAN_URL = "https://script.google.com/macros/s/AKfycby42R57TUGVePyKRxfsFqeLuinCy0rxIVZudX2-Z1tERUpYCxJWw50EU0ZsqIrVGlWy/exec";
 
+// [추가] URL에서 지점명을 읽어옵니다 (예: ?branch=대전동지점)
+const urlParams = new URLSearchParams(window.location.search);
+const myBranch = urlParams.get('branch');
+
 let currentType = 'manager';
 let currentMonth = 1;
 let masterData = { manager: [], staff: [] };
@@ -7,6 +11,7 @@ let lastFetchedAttendance = [];
 
 window.onload = () => { renderMonthPicker(); loadAllData(); };
 
+// 2026년 공휴일 데이터
 function getHolidays(month) {
     const data = { 
         1: { 1: "신정" }, 
@@ -27,9 +32,15 @@ async function loadAllData() {
         const response = await fetch(GAN_URL);
         const res = await response.json();
         masterData.manager = []; masterData.staff = [];
+        
         if(res.config) {
             res.config.slice(1).forEach(row => {
-                const p = { branch: row[1] || "", name: row[2] || "", req: row[3] || 0, unused: row[4] || 0 };
+                const branchName = row[1] || "";
+                
+                // [핵심 필터] URL에 지점이 지정되어 있다면 해당 지점 데이터만 불러옴
+                if (myBranch && branchName !== myBranch) return;
+
+                const p = { branch: branchName, name: row[2] || "", req: row[3] || 0, unused: row[4] || 0 };
                 if (row[0] === 'manager') masterData.manager.push(p);
                 else masterData.staff.push(p);
             });
@@ -57,7 +68,6 @@ function renderTable(attendance) {
     for (let d = 1; d <= 31; d++) {
         const dateObj = new Date(2026, currentMonth - 1, d);
         const isExist = dateObj.getMonth() === currentMonth - 1;
-        
         const thD = document.createElement('th');
         const thW = document.createElement('th');
         const thH = document.createElement('th');
@@ -70,9 +80,7 @@ function renderTable(attendance) {
             thD.innerText = d; thW.innerText = weekDays[dayIdx]; thH.innerText = hName;
             if(isRedDay) { [thD, thW, thH].forEach(el => el.classList.add('txt-red')); }
         }
-        dateRow.appendChild(thD);
-        weekRow.appendChild(thW);
-        holidayRow.appendChild(thH);
+        dateRow.appendChild(thD); weekRow.appendChild(thW); holidayRow.appendChild(thH);
         vRow.insertCell(-1).id = `vac-count-${d}`;
         wRow.insertCell(-1).id = `work-count-${d}`;
     }
@@ -106,20 +114,12 @@ function renderTable(attendance) {
     updateCounts();
 }
 
-// 글자 색상 적용 (수정 요청 반영)
 function applyStatusColor(cell, status) {
-    cell.style.color = ""; 
-    cell.style.fontWeight = "bold";
-
-    if(status === '연차' || status === '휴가') {
-        cell.style.color = "#d32f2f"; // 요청: 빨간색
-    } else if(status === '출장') {
-        cell.style.color = "#000000"; // 요청: 검은색
-    } else if(status.includes('반차')) {
-        cell.style.color = "#ef6c00"; // 주황색 유지
-    } else if(status === '반반차') {
-        cell.style.color = "#4caf50"; // 초록색 유지
-    }
+    cell.style.color = ""; cell.style.fontWeight = "bold";
+    if(status === '연차' || status === '휴가') cell.style.color = "#d32f2f";
+    else if(status === '출장') cell.style.color = "#000000";
+    else if(status.includes('반차')) cell.style.color = "#ef6c00";
+    else if(status === '반반차') cell.style.color = "#4caf50";
 }
 
 function showDropdown(cell) {
@@ -169,7 +169,6 @@ function updateCounts() {
             else if (txt === '반반차') usedForPerson += 0.25;
             else if (txt === '오전반차' || txt === '오후반차') usedForPerson += 0.5;
 
-            // 하단 인원 합계: 항목 있으면 무조건 1명
             if (['연차', '오전반차', '오후반차', '반반차', '휴가', '출장'].includes(txt)) {
                 dailyVacationCount[day] += 1;
             }
