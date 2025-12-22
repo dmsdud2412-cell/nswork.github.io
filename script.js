@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const table = document.getElementById('attendance-table');
     const tbody = table.querySelector('tbody');
-    const totalDays = 3１; // 1월 총 일수
+    const totalDays = 31; // 1월 총 일수
 
     // 초기 근태 데이터 정의 (첨부된 이미지 기반)
     // key: [날짜, 근태 종류, 시간(반차/반반차 처리용)]
@@ -191,5 +191,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 웹페이지 로드 시 초기 계산 실행
     calculateSummary();
-
 });
