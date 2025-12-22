@@ -1,59 +1,48 @@
-/* 1. 디자인 그대로 유지 */
+/* --- 기존 디자인 그대로 유지 --- */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Malgun Gothic', sans-serif; background: #f4f7f9; padding: 20px; }
-.container { 
-    background: white; 
-    padding: 20px; 
-    border-radius: 10px; 
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
-    width: 100%; 
-}
+.container { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; }
 
-/* 2. 스크롤 방지를 위한 너비 재설정 */
-table { 
-    width: 100%; 
-    border-collapse: collapse; 
-    table-layout: fixed; 
-    border: 2px solid #444; 
-    min-width: 1100px; 
-}
-
+table { width: 100%; border-collapse: collapse; table-layout: fixed; border: 2px solid #444; min-width: 1100px; }
 th, td { border: 1px solid #bbb; text-align: center; height: 38px; }
 
-/* 3. 헤더 디자인 그대로 */
 thead th { background: #f8f9fa; font-weight: bold; font-size: 13px; }
 .usage-header { background: #e3f2fd !important; color: #1976d2; }
 .usage-cell { background: #f1f8ff; font-size: 11px; }
 .weekend { background: #fff0f0 !important; }
 .holiday-text { color: red; font-size: 11px; font-weight: bold; }
 
-/* 4. 연차 현황 숫자 크기 */
-tbody td:nth-child(3), 
-tbody td:nth-child(4), 
-tbody td:nth-child(5), 
-tbody td:nth-child(6) {
-    font-size: 11px !important; 
-    font-weight: normal;
-    color: #333;
+tbody td:nth-child(3), tbody td:nth-child(4), tbody td:nth-child(5), tbody td:nth-child(6) {
+    font-size: 11px !important; font-weight: normal; color: #333;
 }
 
-/* 5. 클릭 셀 및 상태별 색상 (휴가 색상을 연차와 동일하게 적용) */
 .at-cell { cursor: pointer; transition: 0.2s; background: #fff; font-size: 12px; }
 .at-cell:hover { background: #f0f0f0; }
 
-.status-휴가, .status-연차 { 
-    background: #ffcccc !important; 
-    font-weight: bold; 
-}
-
+/* 휴가와 연차 색상 통일 */
+.status-휴가, .status-연차 { background: #ffcccc !important; font-weight: bold; }
 .status-반차 { background: #fffac2 !important; font-size: 11px; }
-.status-반반차 { 
-    background: #e2fce2 !important; 
-    font-size: 9px !important; 
-    letter-spacing: -1px; 
-    font-weight: bold;
-}
+.status-반반차 { background: #e2fce2 !important; font-size: 9px !important; letter-spacing: -1px; font-weight: bold; }
 
-/* 6. 하단 요약 */
 tfoot td { background: #fafafa; font-weight: bold; font-size: 13px; }
 .footer-label { background: #eee !important; }
+
+/* --- 탭 버튼 디자인 추가 (기존 디자인 무드 유지) --- */
+.tab-menu { display: flex; gap: 2px; margin-bottom: -2px; }
+.tab-btn {
+    padding: 10px 30px;
+    border: 1px solid #bbb;
+    background: #eee;
+    cursor: pointer;
+    font-weight: bold;
+    border-radius: 8px 8px 0 0;
+    font-size: 14px;
+    transition: 0.2s;
+}
+.tab-btn.active {
+    background: white;
+    border-bottom: 2px solid white;
+    border-top: 3px solid #1976d2;
+    color: #1976d2;
+    z-index: 10;
+}
