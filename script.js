@@ -1,44 +1,46 @@
-// 1. 사용자님의 새로운 구글 웹앱 URL
 const GAN_URL = "https://script.google.com/macros/s/AKfycbxYt5lKM8TH6fTCjxYE0Ps6ltIjQR50nGAYNAWqDH1h9gLJyq0YzxjvrVoaCIZVv7q-/exec";
 
 let currentType = 'manager';
-let currentMonth = new Date().getMonth() + 1; // 현재 월 자동 인식
+// 현재 날짜 기준 연/월 정확히 고정
+const now = new Date();
+const currentYear = now.getFullYear();
+const currentMonth = now.getMonth() + 1; 
+
 let masterData = { manager: [], staff: [] }; 
 
 window.onload = function() {
     loadAllData();
 };
 
-// 탭 전환 기능 (기존 디자인 유지)
 function switchTab(type) {
     currentType = type;
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     document.getElementById(`btn-${type}`).classList.add('active');
-    loadAllData(); // 탭 바꿀 때 데이터 다시 로드
+    loadAllData();
 }
 
-// 이번 달 주말(토, 일) 자동 계산
-function getWeekends(month) {
-    let year = new Date().getFullYear();
+// [수정 핵심] 요일 계산 로직을 더 정확하게 수정
+function getWeekends(year, month) {
     let weekends = [];
-    let date = new Date(year, month - 1, 1);
-    while (date.getMonth() === month - 1) {
-        if (date.getDay() === 0 || date.getDay() === 6) weekends.push(date.getDate());
-        date.setDate(date.getDate() + 1);
+    // 해당 월의 1일부터 마지막 날(0일)까지 루프
+    let lastDay = new Date(year, month, 0).getDate(); 
+    for (let d = 1; d <= lastDay; d++) {
+        let dayOfWeek = new Date(year, month - 1, d).getDay();
+        if (dayOfWeek === 0 || dayOfWeek === 6) { // 0: 일요일, 6: 토요일
+            weekends.push(d);
+        }
     }
     return weekends;
 }
 
-// 구글 시트에서 모든 정보 가져오기
 async function loadAllData() {
     const tbody = document.getElementById('attendance-body');
-    tbody.innerHTML = '<tr><td colspan="37" style="text-align:center;">데이터를 동기화 중입니다...</td></tr>';
+    if (tbody) tbody.innerHTML = '<tr><td colspan="37" style="text-align:center;">데이터 로딩 중...</td></tr>';
 
     try {
         const response = await fetch(GAN_URL);
         const res = await response.json();
         
-        // 구글 시트 '명단' 탭에서 인원 정보 파싱
         masterData.manager = [];
         masterData.staff = [];
         res.config.slice(1).forEach(row => {
@@ -49,16 +51,17 @@ async function loadAllData() {
 
         renderTable(res.attendance);
     } catch (e) {
-        console.error("데이터 로드 실패:", e);
+        console.error("로드 실패");
     }
 }
 
 function renderTable(attendance) {
     const tbody = document.getElementById('attendance-body');
+    if (!tbody) return;
     tbody.innerHTML = '';
     
     const list = (currentType === 'manager') ? masterData.manager : masterData.staff;
-    const weekends = getWeekends(currentMonth);
+    const weekends = getWeekends(currentYear, currentMonth);
 
     list.forEach(person => {
         const tr = document.createElement('tr');
@@ -83,16 +86,31 @@ function renderTable(attendance) {
         tbody.appendChild(tr);
     });
     
+    // 하단 합계 영역 색상 적용
+    applyFooterColor(weekends);
     updateCounts();
 }
+
+function applyFooterColor(weekends) {
+    const footerRows = document.querySelectorAll('.footer-row');
+    footerRows.forEach(row => {
+        const cells = row.querySelectorAll('td:not(.footer-label)');
+        cells.forEach((cell, idx) => {
+            if (weekends.includes(idx + 1)) cell.classList.add('weekend');
+            else cell.classList.remove('weekend');
+        });
+    });
+}
+
+// ... 나머지 showDropdown, getStatusClass, updateCounts 함수는 이전과 동일 ...
+// (연차만 차감되고 휴가/출장은 차감 안 되는 로직 포함되어 있습니다.)
 
 function showDropdown(cell) {
     if (cell.querySelector('select')) return;
     const currentStatus = cell.innerText;
     const statuses = ['', '연차', '오전반차', '오후반차', '반반차', '휴가', '출장'];
     const select = document.createElement('select');
-    select.style.cssText = "width:100%; height:100%; border:none; background:transparent; font-size:12px; text-align:center; cursor:pointer;";
-
+    select.style.cssText = "width:100%; height:100%; border:none; background:transparent; font-size:12px; text-align:center;";
     statuses.forEach(s => {
         const opt = document.createElement('option');
         opt.value = s;
@@ -100,32 +118,27 @@ function showDropdown(cell) {
         if(s === currentStatus) opt.selected = true;
         select.appendChild(opt);
     });
-
     cell.innerText = '';
     cell.appendChild(select);
     select.focus();
-
     select.onchange = async function() {
         const newStatus = this.value;
         const day = cell.getAttribute('data-day');
         const name = cell.parentElement.getAttribute('data-person');
-
         cell.innerText = newStatus;
         const isWeekend = cell.classList.contains('weekend') ? 'weekend ' : '';
         cell.className = `at-cell ${isWeekend}${getStatusClass(newStatus)}`;
-        updateCounts(); // 클릭 즉시 계산
-
-        cell.style.backgroundColor = "#fff9c4"; // 노란색 (저장중)
-
+        updateCounts(); 
+        cell.style.backgroundColor = "#fff9c4"; 
         try {
             await fetch(GAN_URL, {
                 method: "POST",
                 body: JSON.stringify({ month: currentMonth, type: currentType, name: name, day: day, status: newStatus })
             });
-            cell.style.backgroundColor = "#c8e6c9"; // 초록색 (성공)
+            cell.style.backgroundColor = "#c8e6c9"; 
             setTimeout(() => { cell.style.backgroundColor = ""; }, 500);
         } catch (e) {
-            alert("저장 실패! 시트 연결을 확인하세요.");
+            alert("저장 실패");
             cell.style.backgroundColor = "#ffcdd2";
         }
     };
@@ -139,22 +152,18 @@ function getStatusClass(status) {
     return '';
 }
 
-// [중요] 계산 로직: 연차 관련만 차감, 휴가/출장은 무시
 function updateCounts() {
     const rows = document.querySelectorAll('#attendance-body tr');
     rows.forEach(row => {
         const name = row.getAttribute('data-person');
         const cells = row.querySelectorAll('.at-cell');
         let used = 0;
-        
         cells.forEach(c => {
             const txt = c.innerText;
             if (txt === '연차') used += 1;
             else if (txt.includes('반차') && txt !== '반반차') used += 0.5;
             else if (txt === '반반차') used += 0.25;
-            // '휴가', '출장'은 여기서 계산되지 않음
         });
-        
         const reqEl = document.getElementById(`req-${name}`);
         const unEl = document.getElementById(`un-${name}`);
         if(reqEl && unEl) {
@@ -166,8 +175,6 @@ function updateCounts() {
             document.getElementById(`rate-${name}`).innerText = Math.floor(rate) + '%';
         }
     });
-
-    // 하단 일별 인원 합계
     const hFooter = document.querySelectorAll('#holiday-row td:not(.footer-label)');
     const wFooter = document.querySelectorAll('#work-row td:not(.footer-label)');
     for (let i = 0; i < 31; i++) {
