@@ -1,10 +1,24 @@
-const managerList = [];
-const staffList = [];
+// 1. 지점장 명단 (이미지 기반 실제 성함)
+const managerList = [
+    { branch: "대전동지점", name: "이승삼", required: 17, unused: 17 },
+    { branch: "대전서지점", name: "김학형", required: 17, unused: 17 },
+    { branch: "천안지점", name: "백운식", required: 17, unused: 17 },
+    { branch: "청주지점", name: "윤남수", required: 17, unused: 17 },
+    { branch: "평택지점", name: "류희복", required: 17, unused: 17 },
+    { branch: "홍성지점", name: "한수하", required: 17, unused: 17 },
+    { branch: "충청영업기획", name: "나병운", required: 17, unused: 17 }
+];
 
-// 50명 임의 데이터 생성 (사번 없이 지점/이름만)
+// 2. 직원 명단 (임의 데이터 50명 생성)
+const staffList = [];
+const branches = ["서울", "부산", "대구", "대전", "광주", "인천", "울산", "수원"];
 for (let i = 1; i <= 50; i++) {
-    managerList.push({ branch: `본부${Math.ceil(i/10)}`, name: `지점장${i}`, required: 17, unused: 17 });
-    staffList.push({ branch: `지점${Math.ceil(i/5)}`, name: `직원${i}`, required: 15, unused: 15 });
+    staffList.push({
+        branch: `${branches[i % branches.length]}${Math.ceil(i/8)}지점`,
+        name: `직원${i}`,
+        required: 15,
+        unused: 15
+    });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -47,7 +61,7 @@ function attachCellEvents() {
             let status = statuses[nextIdx];
             cell.innerText = status;
             cell.classList.remove('status-휴가', 'status-연차', 'status-반차', 'status-반반차');
-            if (status === '휴가' || status === '연차') cell.classList.add(status === '휴가' ? 'status-휴가' : 'status-연차');
+            if (status === '휴가' || status === '연차') cell.classList.add('status-연차'); // 휴가/연차 모두 분홍색 클래스 사용
             else if (status.includes('반차') && status !== '반반차') cell.classList.add('status-반차');
             else if (status === '반반차') cell.classList.add('status-반반차');
             updateCounts();
@@ -79,10 +93,13 @@ function updateCounts() {
     for (let i = 0; i < 31; i++) {
         let hCount = 0;
         rows.forEach(row => {
-            const txt = row.querySelectorAll('.at-cell')[i].innerText;
-            if (txt === '연차') hCount += 1;
-            else if (txt.includes('반차') && txt !== '반반차') hCount += 0.5;
-            else if (txt === '반반차') hCount += 0.25;
+            const cell = row.querySelectorAll('.at-cell')[i];
+            if(cell) {
+                const txt = cell.innerText;
+                if (txt === '연차') hCount += 1;
+                else if (txt.includes('반차') && txt !== '반반차') hCount += 0.5;
+                else if (txt === '반반차') hCount += 0.25;
+            }
         });
         holidayFooter[i].innerText = hCount || '0';
         workFooter[i].innerText = rows.length - hCount;
