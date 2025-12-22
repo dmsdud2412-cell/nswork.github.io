@@ -4,62 +4,56 @@
     <meta charset="UTF-8">
     <title>2026 근태 관리 시스템</title>
     <style>
-        /* 사용자님의 이미지 디자인 100% 유지 */
-        body { font-family: 'Pretendard', sans-serif; margin: 20px; background-color: #f8f9fa; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .tabs button { padding: 10px 25px; border: none; background: #e0e0e0; cursor: pointer; border-radius: 5px; font-weight: bold; }
-        .tabs button.active { background: #d32f2f; color: white; }
+        body { font-family: 'Pretendard', sans-serif; margin: 10px; background-color: #f8f9fa; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .tabs button { padding: 8px 20px; border: 1px solid #ddd; background: #eee; cursor: pointer; border-radius: 5px; font-weight: bold; }
+        .tabs button.active { background: #d32f2f; color: white; border-color: #d32f2f; }
         
-        .month-picker { display: flex; justify-content: center; gap: 5px; margin-bottom: 20px; }
-        .month-btn { padding: 8px 15px; border: 1px solid #ddd; background: white; cursor: pointer; border-radius: 4px; }
-        .month-btn.active { background: #d32f2f; color: white; }
+        /* 31일이 한눈에 보이도록 너비 조정 */
+        .table-container { background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 11px; } /* 글자 크기 살짝 줄임 */
+        th, td { border: 1px solid #ededed; padding: 4px 0; text-align: center; height: 28px; }
+        thead th { background-color: #fcfcfc; }
 
-        .table-container { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 12px; }
-        th, td { border: 1px solid #ededed; padding: 6px 2px; text-align: center; }
-        
-        /* 헤더 배경 */
-        thead th { background-color: #fcfcfc; color: #333; }
-        
-        /* [중요] 일자 및 요일 빨간색 표시 */
+        /* 칸별 고정 너비 (스크롤 방지 핵심) */
+        .col-info { width: 5.5%; } /* 지점, 성명 등 정보칸 */
+        .col-stat { width: 3.5%; } /* 연차 정보칸 */
+        .col-day { width: 2.2%; }  /* 날짜 한 칸 (31일 합산 약 68%) */
+
         .txt-red { color: #d32f2f !important; font-weight: bold; }
-        /* [중요] 배경 음영 - 이미지와 동일한 옅은 분홍색 */
         .bg-pink { background-color: #fff0f0 !important; }
         
-        .at-cell { cursor: pointer; height: 35px; }
+        .at-cell { cursor: pointer; }
         .status-연차 { color: #1976d2; font-weight: bold; }
-        
-        /* 하단 인원수 행 - 음영 제거 */
-        .footer-row td { background-color: #f8f9fa !important; font-weight: bold; color: #333 !important; }
+
+        /* 하단 합계 행 - 음영 및 빨간색 제거 */
+        .footer-row td { background-color: #f8f9fa !important; color: #333 !important; font-weight: bold; }
     </style>
 </head>
 <body>
-
     <div class="header">
-        <h1>🗓️ 2026 근태 관리</h1>
+        <h1 style="font-size: 20px;">🗓️ 2026 근태 관리</h1>
         <div class="tabs">
             <button id="btn-manager" class="active" onclick="switchTab('manager')">지점장</button>
             <button id="btn-staff" onclick="switchTab('staff')">직원</button>
         </div>
     </div>
 
-    <div id="month-picker" class="month-picker"></div>
+    <div id="month-picker" style="display: flex; justify-content: center; gap: 4px; margin-bottom: 15px;"></div>
 
     <div class="table-container">
         <table>
             <thead>
                 <tr>
-                    <th rowspan="3" style="width:80px;">지점</th>
-                    <th rowspan="3" style="width:80px;">성명</th>
-                    <th rowspan="3" style="width:45px;">연차<br>부여</th>
-                    <th rowspan="3" style="width:45px;">전년<br>미사용</th>
-                    <th rowspan="3" style="width:45px;">남은<br>연차</th>
-                    <th rowspan="3" style="width:55px;">소진율</th>
-                    <th colspan="31" id="month-title" style="height:30px;">1월 근태 현황</th>
+                    <th rowspan="2" class="col-info">지점</th>
+                    <th rowspan="2" class="col-info">성명</th>
+                    <th rowspan="2" class="col-stat">연차<br>부여</th>
+                    <th rowspan="2" class="col-stat">전년<br>미사용</th>
+                    <th rowspan="2" class="col-stat">남은<br>연차</th>
+                    <th rowspan="2" class="col-stat">소진율</th>
+                    <th colspan="31" id="month-title" style="height:25px;">1월 근태 현황</th>
                 </tr>
-                <tr id="row-dates">
-                    </tr>
-                <tr id="row-weeks">
+                <tr id="row-header-combined">
                     </tr>
             </thead>
             <tbody id="attendance-body"></tbody>
@@ -73,7 +67,6 @@
             </tfoot>
         </table>
     </div>
-
     <script src="script.js"></script>
 </body>
 </html>
