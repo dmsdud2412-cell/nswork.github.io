@@ -1,4 +1,7 @@
-// 1. 지점장 명단 데이터
+// 1. 구글 시트 연결 주소 (사용자님의 전용 URL)
+const GAN_URL = "https://script.google.com/macros/s/AKfycbxgCUVZjK71YWfdtc30OcZF54Q6pLeo0Bg4FRr_6W69qVxFempPqaqJ-uNoNNnGrhB9/exec";
+
+// 2. 명단 데이터 (기존과 동일)
 const managerList = [
     { branch: "대전동지점", name: "이승삼", required: 17, unused: 17 },
     { branch: "대전서지점", name: "김학형", required: 17, unused: 17 },
@@ -9,38 +12,48 @@ const managerList = [
     { branch: "충청영업기획", name: "나병운", required: 17, unused: 17 }
 ];
 
-// 2. 직원 명단 데이터 (50명 자동 생성)
 const staffList = [];
 for (let i = 1; i <= 50; i++) {
     staffList.push({ branch: `지점${Math.ceil(i/5)}`, name: `직원${i}`, required: 15, unused: 15 });
 }
 
 let currentType = 'manager';
-const holidayDates = [1, 3, 4, 10, 11, 17, 18, 24, 25, 31]; // 휴일 날짜 고정
+const holidayDates = [1, 3, 4, 10, 11, 17, 18, 24, 25, 31];
 
-// 페이지 로드 시 실행
+// 페이지 로드 시 구글 시트에서 데이터를 먼저 가져옵니다.
 window.onload = function() {
-    renderTable('manager');
+    loadDataFromServer(); 
 };
 
-// 탭 전환 함수
 function switchTab(type) {
     currentType = type;
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     document.getElementById(`btn-${type}`).classList.add('active');
-    renderTable(type);
+    loadDataFromServer(); // 탭 바꿀 때도 서버에서 최신 데이터 로드
 }
 
-// 테이블 렌더링 함수
-function renderTable(type) {
+// [중요] 구글 시트에서 데이터를 읽어오는 함수
+async function loadDataFromServer() {
     const tbody = document.getElementById('attendance-body');
-    if(!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="37">데이터를 불러오는 중입니다...</td></tr>';
+    
+    try {
+        const response = await fetch(GAN_URL);
+        const serverData = await response.json();
+        renderTable(currentType, serverData);
+    } catch (error) {
+        console.error("로딩 실패:", error);
+        renderTable(currentType, []); // 실패 시 빈 테이블이라도 띄움
+    }
+}
+
+function renderTable(type, serverData) {
+    const tbody = document.getElementById('attendance-body');
     tbody.innerHTML = '';
     
-    const data = (type === 'manager') ? managerList : staffList;
-    const savedData = JSON.parse(localStorage.getItem(`attendance_202601_${type}`)) || {};
+    const dataList = (type === 'manager') ? managerList : staffList;
 
-    data.forEach(person => {
+    dataList.forEach(person => {
         const tr = document.createElement('tr');
         tr.setAttribute('data-person', person.name);
         
@@ -51,7 +64,11 @@ function renderTable(type) {
             <td class="num-cell" id="rate-${person.name}">0%</td>`;
         
         for (let i = 1; i <= 31; i++) {
-            const status = savedData[person.name] ? (savedData[person.name][i] || '') : '';
+            // 서버 데이터에서 해당 사람의 해당 날짜 값을 찾음
+            let status = "";
+            const match = serverData.find(row => row[0] === type && row[1] === person.name && row[2] == i);
+            if(match) status = match[3];
+
             const statusClass = getStatusClass(status);
             const holidayClass = holidayDates.includes(i) ? 'weekend' : '';
             rowHtml += `<td class="at-cell ${holidayClass} ${statusClass}" data-day="${i}">${status}</td>`;
@@ -76,39 +93,42 @@ function attachCellEvents() {
     const statuses = ['', '휴가', '연차', '오전반차', '오후반차', '반반차', '출장'];
     
     cells.forEach(cell => {
-        cell.onclick = function() {
+        cell.onclick = async function() {
             let currentIdx = statuses.indexOf(this.innerText);
             let nextIdx = (currentIdx + 1) % statuses.length;
             let status = statuses[nextIdx];
             
-            this.innerText = status;
+            const oldText = this.innerText;
+            this.innerText = status; // 화면 먼저 변경 (빠른 반응)
             
-            const isWeekend = this.classList.contains('weekend') ? 'weekend ' : '';
-            this.className = `at-cell ${isWeekend}${getStatusClass(status)}`;
-            
-            saveData();
-            updateCounts();
+            const day = this.getAttribute('data-day');
+            const name = this.parentElement.getAttribute('data-person');
+
+            // 구글 시트로 데이터 전송
+            try {
+                await fetch(GAN_URL, {
+                    method: "POST",
+                    body: JSON.stringify({
+                        type: currentType,
+                        name: name,
+                        day: day,
+                        status: status
+                    })
+                });
+                const isWeekend = this.classList.contains('weekend') ? 'weekend ' : '';
+                this.className = `at-cell ${isWeekend}${getStatusClass(status)}`;
+                updateCounts();
+            } catch (e) {
+                alert("저장에 실패했습니다. 인터넷 연결을 확인하세요.");
+                this.innerText = oldText; // 실패 시 복구
+            }
         };
     });
 }
 
-function saveData() {
-    const rows = document.querySelectorAll('#attendance-body tr');
-    const storageData = {};
-    rows.forEach(row => {
-        const name = row.getAttribute('data-person');
-        storageData[name] = {};
-        row.querySelectorAll('.at-cell').forEach(cell => {
-            storageData[name][cell.getAttribute('data-day')] = cell.innerText;
-        });
-    });
-    localStorage.setItem(`attendance_202601_${currentType}`, JSON.stringify(storageData));
-}
-
+// 나머지 수치 계산 로직은 기존과 동일 (생략 없이 유지)
 function updateCounts() {
     const rows = document.querySelectorAll('#attendance-body tr');
-    
-    // 1. 개인별 연차 사용 현황 업데이트 (수치 계산)
     rows.forEach(row => {
         const name = row.getAttribute('data-person');
         const cells = row.querySelectorAll('.at-cell');
@@ -118,34 +138,29 @@ function updateCounts() {
             if (txt === '연차' || txt === '휴가') used += 1;
             else if (txt.includes('반차') && txt !== '반반차') used += 0.5;
             else if (txt === '반반차') used += 0.25;
-            // 출장은 연차 수치에서 제외
         });
         
-        const reqVal = parseFloat(document.getElementById(`req-${name}`).innerText);
-        const unVal = parseFloat(document.getElementById(`un-${name}`).innerText);
-        const rem = unVal - used;
-        const rate = reqVal > 0 ? ((reqVal - rem) / reqVal) * 100 : 0;
-        
-        document.getElementById(`rem-${name}`).innerText = rem % 1 === 0 ? rem : rem.toFixed(2);
-        document.getElementById(`rate-${name}`).innerText = Math.floor(rate) + '%';
+        const reqEl = document.getElementById(`req-${name}`);
+        const unEl = document.getElementById(`un-${name}`);
+        if(reqEl && unEl) {
+            const reqVal = parseFloat(reqEl.innerText);
+            const unVal = parseFloat(unEl.innerText);
+            const rem = unVal - used;
+            const rate = reqVal > 0 ? ((reqVal - rem) / reqVal) * 100 : 0;
+            document.getElementById(`rem-${name}`).innerText = rem % 1 === 0 ? rem : rem.toFixed(2);
+            document.getElementById(`rate-${name}`).innerText = Math.floor(rate) + '%';
+        }
     });
 
-    // 2. 하단 합계 업데이트 (머릿수 계산)
     const hFooter = document.querySelectorAll('#holiday-row td:not(.footer-label)');
     const wFooter = document.querySelectorAll('#work-row td:not(.footer-label)');
-    
     for (let i = 0; i < 31; i++) {
-        let personCount = 0; // 휴무 인원수 (머릿수)
+        let personCount = 0;
         rows.forEach(row => {
             const cell = row.querySelectorAll('.at-cell')[i];
-            const txt = cell ? cell.innerText : '';
-            // 빈칸이 아니면(연차, 반차, 출장 등 무엇이라도 적혀있으면) 인원수 1명 추가
-            if (txt !== '') {
-                personCount += 1;
-            }
+            if (cell && cell.innerText !== '') personCount += 1;
         });
-        
-        if(hFooter[i]) hFooter[i].innerText = personCount || '0'; // 휴무 인원 (총 머릿수)
-        if(wFooter[i]) wFooter[i].innerText = rows.length - personCount; // 근무 인원 (전체 - 휴무)
+        if(hFooter[i]) hFooter[i].innerText = personCount || '0';
+        if(wFooter[i]) wFooter[i].innerText = rows.length - personCount;
     }
 }
