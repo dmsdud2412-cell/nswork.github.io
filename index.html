@@ -14,7 +14,6 @@
         th, td { border: 1px solid #ededed; padding: 2px 0; text-align: center; height: 22px; }
         thead th { background-color: #fcfcfc; font-weight: bold; }
 
-        /* 너비 고정: 31일이 한눈에 들어오도록 설정 */
         .col-info { width: 5.5%; } 
         .col-stat { width: 3.5%; } 
         .col-day { width: 2.2%; } 
@@ -52,7 +51,10 @@
                     <th rowspan="4" class="col-stat">소진율</th>
                     <th colspan="31" id="month-title">1월 근태 현황</th>
                 </tr>
-                <tr id="row-dates"></tr> <tr id="row-weeks"></tr> <tr id="row-holidays"></tr> </thead>
+                <tr id="row-dates"></tr>
+                <tr id="row-weeks"></tr>
+                <tr id="row-holidays"></tr>
+            </thead>
             <tbody id="attendance-body"></tbody>
             <tfoot>
                 <tr class="footer-row" id="row-vacation">
