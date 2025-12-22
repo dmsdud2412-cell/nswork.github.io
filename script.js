@@ -1,6 +1,6 @@
 const GAN_URL = "https://script.google.com/macros/s/AKfycby42R57TUGVePyKRxfsFqeLuinCy0rxIVZudX2-Z1tERUpYCxJWw50EU0ZsqIrVGlWy/exec";
 
-// [추가] URL에서 지점명을 읽어옵니다 (예: ?branch=대전동지점)
+// URL 지점 필터
 const urlParams = new URLSearchParams(window.location.search);
 const myBranch = urlParams.get('branch');
 
@@ -11,7 +11,7 @@ let lastFetchedAttendance = [];
 
 window.onload = () => { renderMonthPicker(); loadAllData(); };
 
-// 2026년 공휴일 데이터
+// 2026년 공휴일
 function getHolidays(month) {
     const data = { 
         1: { 1: "신정" }, 
@@ -36,10 +36,7 @@ async function loadAllData() {
         if(res.config) {
             res.config.slice(1).forEach(row => {
                 const branchName = row[1] || "";
-                
-                // [핵심 필터] URL에 지점이 지정되어 있다면 해당 지점 데이터만 불러옴
-                if (myBranch && branchName !== myBranch) return;
-
+                if (myBranch && branchName !== myBranch) return; // 지점 필터
                 const p = { branch: branchName, name: row[2] || "", req: row[3] || 0, unused: row[4] || 0 };
                 if (row[0] === 'manager') masterData.manager.push(p);
                 else masterData.staff.push(p);
@@ -145,7 +142,23 @@ function showDropdown(cell) {
         cell.innerText = newStatus;
         applyStatusColor(cell, newStatus);
         updateCounts(); 
-        await fetch(GAN_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ month: currentMonth, type: currentType, name: name, day: day, status: newStatus }) });
+        
+        // [저장 복구] 구글 앱스 스크립트 전송
+        const payload = { 
+            month: parseInt(currentMonth), 
+            type: currentType, 
+            name: name, 
+            day: parseInt(day), 
+            status: newStatus 
+        };
+
+        fetch(GAN_URL, {
+            method: "POST",
+            mode: "no-cors", // 이 설정이 있어야 구글 서버로 전송이 원활합니다.
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        }).then(() => console.log("저장 성공"))
+          .catch(e => console.error("저장 에러:", e));
     };
     select.onblur = function() { if (cell.contains(this)) cell.innerText = this.value; };
 }
