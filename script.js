@@ -18,10 +18,10 @@ for (let i = 1; i <= 50; i++) {
 let currentType = 'manager';
 const holidayDates = [1, 3, 4, 10, 11, 17, 18, 24, 25, 31];
 
-// [수정] 페이지 로드 즉시 명단부터 그립니다.
+// [강력 수정] 페이지 로드 즉시 명단부터 무조건 띄웁니다.
 window.onload = function() {
-    renderTable(currentType, []); // 일단 빈 데이터로 명단부터 출력
-    loadDataFromServer();         // 그 다음 서버에서 데이터를 가져와 채움
+    renderTable(currentType, []); // 구글 시트 기다리지 않고 바로 명단 생성
+    loadDataFromServer();
 };
 
 function switchTab(type) {
@@ -35,11 +35,11 @@ function switchTab(type) {
 async function loadDataFromServer() {
     try {
         const response = await fetch(GAN_URL);
+        if (!response.ok) throw new Error('Network response was not ok');
         const serverData = await response.json();
-        renderTable(currentType, serverData); // 데이터를 받아오면 다시 그림
+        renderTable(currentType, serverData); // 데이터 로드 완료 후 값 채우기
     } catch (error) {
         console.error("데이터 로드 실패:", error);
-        // 실패해도 이미 그려진 명단은 유지됩니다.
     }
 }
 
@@ -78,7 +78,6 @@ function renderTable(type, serverData) {
     updateCounts();
 }
 
-// [수정] 드롭다운 기능 (기존 디자인 유지)
 function showDropdown(cell) {
     if (cell.querySelector('select')) return;
 
@@ -86,7 +85,6 @@ function showDropdown(cell) {
     const statuses = ['', '휴가', '연차', '오전반차', '오후반차', '반반차', '출장'];
     
     const select = document.createElement('select');
-    // 셀 크기에 완벽히 맞춤
     select.style.cssText = "width:100%; height:100%; border:none; background:transparent; font-size:12px; text-align:center; cursor:pointer;";
 
     statuses.forEach(s => {
@@ -110,14 +108,24 @@ function showDropdown(cell) {
         const isWeekend = cell.classList.contains('weekend') ? 'weekend ' : '';
         cell.className = `at-cell ${isWeekend}${getStatusClass(newStatus)}`;
 
+        // 저장 중임을 시각적으로 표시 (노란색 배경)
+        cell.style.backgroundColor = "#fff9c4";
+
         try {
-            await fetch(GAN_URL, {
+            const res = await fetch(GAN_URL, {
                 method: "POST",
                 body: JSON.stringify({ type: currentType, name: name, day: day, status: newStatus })
             });
+            
+            if(res.ok) {
+                // 저장 성공 시: 초록색으로 잠깐 반짝인 후 원래 색으로
+                cell.style.backgroundColor = "#c8e6c9";
+                setTimeout(() => { cell.style.backgroundColor = ""; }, 500);
+            }
             updateCounts();
         } catch (e) {
-            console.error("저장 실패");
+            alert("저장에 실패했습니다. 인터넷 연결을 확인하세요.");
+            cell.style.backgroundColor = "#ffcdd2"; // 에러 시 빨간색
         }
     };
 
@@ -168,3 +176,5 @@ function updateCounts() {
         });
         if(hFooter[i]) hFooter[i].innerText = personCount || '0';
         if(wFooter[i]) wFooter[i].innerText = rows.length - personCount;
+    }
+}
