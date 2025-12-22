@@ -1,41 +1,74 @@
 const GAN_URL = "https://script.google.com/macros/s/AKfycbxYt5lKM8TH6fTCjxYE0Ps6ltIjQR50nGAYNAWqDH1h9gLJyq0YzxjvrVoaCIZVv7q-/exec";
 
 let currentType = 'manager';
-// 현재 날짜 기준 연/월 정확히 고정
-const now = new Date();
-const currentYear = now.getFullYear();
-const currentMonth = now.getMonth() + 1; 
+let currentYear = 2026;
+let currentMonth = 1; // 초기 로딩 시 1월
 
 let masterData = { manager: [], staff: [] }; 
 
 window.onload = function() {
+    createMonthPicker(); // 월 선택 버튼 생성
     loadAllData();
 };
 
-function switchTab(type) {
-    currentType = type;
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    document.getElementById(`btn-${type}`).classList.add('active');
-    loadAllData();
+// 1. 월 선택 버튼 생성 (디자인 유지)
+function createMonthPicker() {
+    const header = document.querySelector('.header') || document.body;
+    const pickerDiv = document.createElement('div');
+    pickerDiv.className = 'month-picker';
+    pickerDiv.style.cssText = "text-align:center; margin-bottom:15px; padding:10px; background:#f8f9fa; border-radius:8px;";
+    
+    // 1월부터 12월까지 버튼 생성
+    for (let m = 1; m <= 12; m++) {
+        const btn = document.createElement('button');
+        btn.innerText = `${m}월`;
+        btn.className = 'tab-btn'; 
+        btn.style.margin = "2px";
+        btn.style.padding = "5px 12px";
+        if(m === currentMonth) btn.style.background = "#d32f2f"; 
+        
+        btn.onclick = function() {
+            currentMonth = m;
+            document.querySelectorAll('.month-picker .tab-btn').forEach(b => b.style.background = "");
+            this.style.background = "#d32f2f";
+            loadAllData();
+        };
+        pickerDiv.appendChild(btn);
+    }
+    header.prepend(pickerDiv);
 }
 
-// [수정 핵심] 요일 계산 로직을 더 정확하게 수정
+// 2. 2026년 공휴일 정보 (주말 제외한 법정공휴일)
+function getPublicHolidays(month) {
+    const holidays = {
+        1: [1],             // 신정
+        2: [16, 17, 18],    // 설날 연휴
+        3: [1, 2],          // 삼일절(대체휴무 포함)
+        5: [5, 24, 25],     // 어린이날, 부처님오신날(대체포함)
+        6: [6],             // 현충일
+        8: [15, 17],        // 광복절(대체포함)
+        9: [24, 25, 26],    // 추석 연휴
+        10: [3, 5, 9],      // 개천절(대체포함), 한글날
+        12: [25]            // 크리스마스
+    };
+    return holidays[month] || [];
+}
+
+// 3. 주말 자동 계산
 function getWeekends(year, month) {
     let weekends = [];
-    // 해당 월의 1일부터 마지막 날(0일)까지 루프
     let lastDay = new Date(year, month, 0).getDate(); 
     for (let d = 1; d <= lastDay; d++) {
         let dayOfWeek = new Date(year, month - 1, d).getDay();
-        if (dayOfWeek === 0 || dayOfWeek === 6) { // 0: 일요일, 6: 토요일
-            weekends.push(d);
-        }
+        if (dayOfWeek === 0 || dayOfWeek === 6) weekends.push(d);
     }
     return weekends;
 }
 
+// 4. 전체 데이터 로드
 async function loadAllData() {
     const tbody = document.getElementById('attendance-body');
-    if (tbody) tbody.innerHTML = '<tr><td colspan="37" style="text-align:center;">데이터 로딩 중...</td></tr>';
+    if (tbody) tbody.innerHTML = '<tr><td colspan="37" style="text-align:center;">데이터 동기화 중...</td></tr>';
 
     try {
         const response = await fetch(GAN_URL);
@@ -50,9 +83,7 @@ async function loadAllData() {
         });
 
         renderTable(res.attendance);
-    } catch (e) {
-        console.error("로드 실패");
-    }
+    } catch (e) { console.error("로드 실패"); }
 }
 
 function renderTable(attendance) {
@@ -62,6 +93,8 @@ function renderTable(attendance) {
     
     const list = (currentType === 'manager') ? masterData.manager : masterData.staff;
     const weekends = getWeekends(currentYear, currentMonth);
+    const holidays = getPublicHolidays(currentMonth);
+    const allHolidays = [...new Set([...weekends, ...holidays])];
 
     list.forEach(person => {
         const tr = document.createElement('tr');
@@ -78,32 +111,28 @@ function renderTable(attendance) {
             const match = attendance.find(r => r[0] == currentMonth && r[1] == currentType && r[2] == person.name && r[3] == i);
             if(match) status = match[4];
 
-            const isWeekend = weekends.includes(i) ? 'weekend' : '';
+            const isHoliday = allHolidays.includes(i) ? 'weekend' : '';
             const statusClass = getStatusClass(status);
-            rowHtml += `<td class="at-cell ${isWeekend} ${statusClass}" data-day="${i}" onclick="showDropdown(this)">${status}</td>`;
+            rowHtml += `<td class="at-cell ${isHoliday} ${statusClass}" data-day="${i}" onclick="showDropdown(this)">${status}</td>`;
         }
         tr.innerHTML = rowHtml;
         tbody.appendChild(tr);
     });
     
-    // 하단 합계 영역 색상 적용
-    applyFooterColor(weekends);
+    applyFooterColor(allHolidays);
     updateCounts();
 }
 
-function applyFooterColor(weekends) {
+function applyFooterColor(holidays) {
     const footerRows = document.querySelectorAll('.footer-row');
     footerRows.forEach(row => {
         const cells = row.querySelectorAll('td:not(.footer-label)');
         cells.forEach((cell, idx) => {
-            if (weekends.includes(idx + 1)) cell.classList.add('weekend');
+            if (holidays.includes(idx + 1)) cell.classList.add('weekend');
             else cell.classList.remove('weekend');
         });
     });
 }
-
-// ... 나머지 showDropdown, getStatusClass, updateCounts 함수는 이전과 동일 ...
-// (연차만 차감되고 휴가/출장은 차감 안 되는 로직 포함되어 있습니다.)
 
 function showDropdown(cell) {
     if (cell.querySelector('select')) return;
@@ -126,8 +155,8 @@ function showDropdown(cell) {
         const day = cell.getAttribute('data-day');
         const name = cell.parentElement.getAttribute('data-person');
         cell.innerText = newStatus;
-        const isWeekend = cell.classList.contains('weekend') ? 'weekend ' : '';
-        cell.className = `at-cell ${isWeekend}${getStatusClass(newStatus)}`;
+        const isHoliday = cell.classList.contains('weekend') ? 'weekend ' : '';
+        cell.className = `at-cell ${isHoliday}${getStatusClass(newStatus)}`;
         updateCounts(); 
         cell.style.backgroundColor = "#fff9c4"; 
         try {
