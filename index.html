@@ -9,25 +9,23 @@
         .tabs button { padding: 8px 20px; border: 1px solid #ddd; background: #eee; cursor: pointer; border-radius: 5px; font-weight: bold; }
         .tabs button.active { background: #d32f2f; color: white; border-color: #d32f2f; }
         
-        /* 31일 한눈에 보기 최적화 */
         .table-container { background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
         table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 11px; }
-        th, td { border: 1px solid #ededed; padding: 2px 0; text-align: center; height: 25px; }
-        thead th { background-color: #fcfcfc; }
+        th, td { border: 1px solid #ededed; padding: 2px 0; text-align: center; height: 22px; }
+        thead th { background-color: #fcfcfc; font-weight: bold; }
 
-        /* 고정 열 너비 설정 (스크롤 방지) */
+        /* 너비 고정: 31일이 한눈에 들어오도록 설정 */
         .col-info { width: 5.5%; } 
         .col-stat { width: 3.5%; } 
         .col-day { width: 2.2%; } 
 
-        /* 주말/공휴일 스타일 */
         .txt-red { color: #d32f2f !important; font-weight: bold; }
         .bg-pink { background-color: #fff0f0 !important; }
         
-        .at-cell { cursor: pointer; }
+        .at-cell { cursor: pointer; transition: background 0.2s; }
+        .at-cell:hover { background-color: #f1f3f5; }
         .status-연차 { color: #1976d2; font-weight: bold; }
 
-        /* 하단 인원 행 - 음영 및 빨간색 완전 제거 */
         .footer-row td { background-color: #f8f9fa !important; color: #333 !important; font-weight: bold; }
     </style>
 </head>
@@ -46,15 +44,15 @@
         <table>
             <thead>
                 <tr>
-                    <th rowspan="3" class="col-info">지점</th>
-                    <th rowspan="3" class="col-info">성명</th>
-                    <th rowspan="3" class="col-stat">연차<br>부여</th>
-                    <th rowspan="3" class="col-stat">전년<br>미사용</th>
-                    <th rowspan="3" class="col-stat">남은<br>연차</th>
-                    <th rowspan="3" class="col-stat">소진율</th>
+                    <th rowspan="4" class="col-info">지점</th>
+                    <th rowspan="4" class="col-info">성명</th>
+                    <th rowspan="4" class="col-stat">연차<br>부여</th>
+                    <th rowspan="4" class="col-stat">전년<br>미사용</th>
+                    <th rowspan="4" class="col-stat">남은<br>연차</th>
+                    <th rowspan="4" class="col-stat">소진율</th>
                     <th colspan="31" id="month-title">1월 근태 현황</th>
                 </tr>
-                <tr id="row-dates"></tr> <tr id="row-weeks"></tr> </thead>
+                <tr id="row-dates"></tr> <tr id="row-weeks"></tr> <tr id="row-holidays"></tr> </thead>
             <tbody id="attendance-body"></tbody>
             <tfoot>
                 <tr class="footer-row" id="row-vacation">
