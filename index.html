@@ -11,44 +11,46 @@
         <table id="attendance-table">
             <thead>
                 <tr>
-                    <th rowspan="3" style="width: 80px;">지점</th>
-                    <th rowspan="3" style="width: 100px;">지점장</th>
-                    <th colspan="4" rowspan="2">1월 연차 사용 현황</th>
-                    <th class="day-cell weekend">1</th><th class="day-cell">2</th><th class="day-cell weekend">3</th><th class="day-cell weekend">4</th><th class="day-cell">5</th><th class="day-cell">6</th><th class="day-cell">7</th><th class="day-cell">8</th><th class="day-cell">9</th><th class="day-cell weekend">10</th><th class="day-cell weekend">11</th><th class="day-cell">12</th><th class="day-cell">13</th><th class="day-cell">14</th><th class="day-cell">15</th><th class="day-cell">16</th><th class="day-cell weekend">17</th><th class="day-cell weekend">18</th><th class="day-cell">19</th><th class="day-cell">20</th><th class="day-cell">21</th><th class="day-cell">22</th><th class="day-cell">23</th><th class="day-cell weekend">24</th><th class="day-cell weekend">25</th><th class="day-cell">26</th><th class="day-cell">27</th><th class="day-cell">28</th><th class="day-cell">29</th><th class="day-cell">30</th><th class="day-cell weekend">31</th>
+                    <th rowspan="3">지점</th>
+                    <th rowspan="3">지점장</th>
+                    <th colspan="4">연차 사용 현황</th>
+                    <script>
+                        for(let i=1; i<=31; i++) document.write(`<th>${i}</th>`);
+                    </script>
                 </tr>
                 <tr>
-                    <th class="day-cell weekend">목</th><th class="day-cell">금</th><th class="day-cell weekend">토</th><th class="day-cell weekend">일</th><th class="day-cell">월</th><th class="day-cell">화</th><th class="day-cell">수</th><th class="day-cell">목</th><th class="day-cell">금</th><th class="day-cell weekend">토</th><th class="day-cell weekend">일</th><th class="day-cell">월</th><th class="day-cell">화</th><th class="day-cell">수</th><th class="day-cell">목</th><th class="day-cell">금</th><th class="day-cell weekend">토</th><th class="day-cell weekend">일</th><th class="day-cell">월</th><th class="day-cell">화</th><th class="day-cell">수</th><th class="day-cell">목</th><th class="day-cell">금</th><th class="day-cell weekend">토</th><th class="day-cell weekend">일</th><th class="day-cell">월</th><th class="day-cell">화</th><th class="day-cell">수</th><th class="day-cell">목</th><th class="day-cell">금</th><th class="day-cell weekend">토</th>
+                    <th rowspan="2">필수</th>
+                    <th rowspan="2">미사용</th>
+                    <th rowspan="2">잔여</th>
+                    <th rowspan="2">사용률</th>
+                    <th>목</th><th>금</th><th>토</th><th>일</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th><th>일</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th><th>일</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th><th>일</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th>
                 </tr>
                 <tr>
-                    <th style="width:40px;">필수</th><th style="width:40px;">미사용</th><th style="width:40px;">잔여</th><th style="width:50px;">사용률</th>
-                    <th class="day-cell weekend" style="color:red;">신정</th>
-                    <th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th>
+                    <th style="color:red">신정</th>
+                    <script>for(let i=1; i<=30; i++) document.write('<th></th>');</script>
                 </tr>
             </thead>
             <tbody>
                 <tr data-person="김진영">
-                    <td rowspan="2">대전동지점</td>
+                    <td>대전동지점</td>
                     <td>김진영</td>
                     <td>3</td><td>0</td><td>12</td><td>100%</td>
-                    <td colspan="31" class="daily-attendance-row"></td>
-                </tr>
-                <tr>
-                    <td colspan="4" style="background:#f9f9f9;"></td>
-                    <td colspan="31" class="sub-row"></td>
+                    <script>
+                        for(let i=1; i<=31; i++) document.write('<td class="attendance-cell"></td>');
+                    </script>
                 </tr>
             </tbody>
             <tfoot>
-                <tr id="holiday-count-row-parent">
-                    <td colspan="6" class="footer-title">휴무 인원</td>
-                    <td colspan="31" class="summary-area"></td>
+                <tr>
+                    <td colspan="6">휴무 인원</td>
+                    <script>for(let i=1; i<=31; i++) document.write('<td>0</td>');</script>
                 </tr>
-                <tr id="workforce-count-row-parent">
-                    <td colspan="6" class="footer-title">근무 인원</td>
-                    <td colspan="31" class="summary-area"></td>
+                <tr>
+                    <td colspan="6">근무 인원</td>
+                    <script>for(let i=1; i<=31; i++) document.write('<td>1</td>');</script>
                 </tr>
             </tfoot>
         </table>
     </div>
-    <script src="script.js"></script>
 </body>
 </html>
