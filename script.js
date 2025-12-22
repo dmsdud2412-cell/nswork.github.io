@@ -26,10 +26,8 @@ window.onload = function() {
 // 탭 전환 함수
 function switchTab(type) {
     currentType = type;
-    // 버튼 스타일 변경
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     document.getElementById(`btn-${type}`).classList.add('active');
-    // 테이블 다시 그리기
     renderTable(type);
 }
 
@@ -85,7 +83,6 @@ function attachCellEvents() {
             
             this.innerText = status;
             
-            // 기존 weekend 클래스는 보존하면서 상태 클래스만 교체
             const isWeekend = this.classList.contains('weekend') ? 'weekend ' : '';
             this.className = `at-cell ${isWeekend}${getStatusClass(status)}`;
             
@@ -110,6 +107,8 @@ function saveData() {
 
 function updateCounts() {
     const rows = document.querySelectorAll('#attendance-body tr');
+    
+    // 1. 개인별 연차 사용 현황 업데이트 (수치 계산)
     rows.forEach(row => {
         const name = row.getAttribute('data-person');
         const cells = row.querySelectorAll('.at-cell');
@@ -119,6 +118,7 @@ function updateCounts() {
             if (txt === '연차' || txt === '휴가') used += 1;
             else if (txt.includes('반차') && txt !== '반반차') used += 0.5;
             else if (txt === '반반차') used += 0.25;
+            // 출장은 연차 수치에서 제외
         });
         
         const reqVal = parseFloat(document.getElementById(`req-${name}`).innerText);
@@ -130,19 +130,22 @@ function updateCounts() {
         document.getElementById(`rate-${name}`).innerText = Math.floor(rate) + '%';
     });
 
+    // 2. 하단 합계 업데이트 (머릿수 계산)
     const hFooter = document.querySelectorAll('#holiday-row td:not(.footer-label)');
     const wFooter = document.querySelectorAll('#work-row td:not(.footer-label)');
     
     for (let i = 0; i < 31; i++) {
-        let count = 0;
+        let personCount = 0; // 휴무 인원수 (머릿수)
         rows.forEach(row => {
             const cell = row.querySelectorAll('.at-cell')[i];
             const txt = cell ? cell.innerText : '';
-            if (txt === '연차' || txt === '휴가') count += 1;
-            else if (txt.includes('반차') && txt !== '반반차') count += 0.5;
-            else if (txt === '반반차') count += 0.25;
+            // 빈칸이 아니면(연차, 반차, 출장 등 무엇이라도 적혀있으면) 인원수 1명 추가
+            if (txt !== '') {
+                personCount += 1;
+            }
         });
-        if(hFooter[i]) hFooter[i].innerText = count || '0';
-        if(wFooter[i]) wFooter[i].innerText = rows.length - count;
+        
+        if(hFooter[i]) hFooter[i].innerText = personCount || '0'; // 휴무 인원 (총 머릿수)
+        if(wFooter[i]) wFooter[i].innerText = rows.length - personCount; // 근무 인원 (전체 - 휴무)
     }
 }
