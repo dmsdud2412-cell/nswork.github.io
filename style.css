@@ -6,28 +6,28 @@ body { font-family: 'Malgun Gothic', sans-serif; background: #f4f7f9; padding: 2
     padding: 20px; 
     border-radius: 10px; 
     box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
-    width: 100%; /* 화면 너비에 맞춤 */
+    width: 100%; 
 }
 
 /* 2. 스크롤 방지를 위한 너비 재설정 */
 table { 
     width: 100%; 
     border-collapse: collapse; 
-    table-layout: fixed; /* 칸 너비 고정 */
+    table-layout: fixed; 
     border: 2px solid #444; 
-    min-width: 1100px; /* 너무 뭉개지지 않는 최소선만 지정 */
+    min-width: 1100px; 
 }
 
 th, td { border: 1px solid #bbb; text-align: center; height: 38px; }
 
-/* 3. 헤더 디자인 그대로 (색상 복구) */
+/* 3. 헤더 디자인 그대로 */
 thead th { background: #f8f9fa; font-weight: bold; font-size: 13px; }
 .usage-header { background: #e3f2fd !important; color: #1976d2; }
 .usage-cell { background: #f1f8ff; font-size: 11px; }
 .weekend { background: #fff0f0 !important; }
 .holiday-text { color: red; font-size: 11px; font-weight: bold; }
 
-/* 4. 연차 현황 숫자 크기 복구 (작게 요청하신 버전) */
+/* 4. 연차 현황 숫자 크기 */
 tbody td:nth-child(3), 
 tbody td:nth-child(4), 
 tbody td:nth-child(5), 
@@ -37,12 +37,12 @@ tbody td:nth-child(6) {
     color: #333;
 }
 
-/* 5. 클릭 셀 및 상태별 색상 그대로 복구 */
+/* 5. 클릭 셀 및 상태별 색상 (휴가 색상 추가) */
 .at-cell { cursor: pointer; transition: 0.2s; background: #fff; font-size: 12px; }
 .at-cell:hover { background: #f0f0f0; }
 
-.status-휴가 { background: #ffcccc !important; font-weight: bold; }
-.status-연차 { background: #ffcccc !important; font-weight: bold; }
+/* 휴가와 연차를 동일한 분홍색으로 설정 */
+.status-휴가, .status-연차 { background: #ffcccc !important; font-weight: bold; }
 .status-반차 { background: #fffac2 !important; font-size: 11px; }
 .status-반반차 { 
     background: #e2fce2 !important; 
@@ -54,4 +54,3 @@ tbody td:nth-child(6) {
 /* 6. 하단 요약 */
 tfoot td { background: #fafafa; font-weight: bold; font-size: 13px; }
 .footer-label { background: #eee !important; }
-
