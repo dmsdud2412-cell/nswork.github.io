@@ -7,7 +7,6 @@ let lastFetchedAttendance = [];
 
 window.onload = () => { renderMonthPicker(); loadAllData(); };
 
-// 2026년 공휴일 데이터
 function getHolidays(month) {
     const data = { 
         1: { 1: "신정" }, 
@@ -76,8 +75,10 @@ function renderTable(attendance) {
         dateRow.appendChild(thD);
         weekRow.appendChild(thW);
         holidayRow.appendChild(thH);
-        vRow.insertCell(-1).innerText = '0';
-        wRow.insertCell(-1).innerText = '0';
+        
+        // 하단 인원 셀 (ID 부여하여 나중에 계산 결과 주입)
+        vRow.insertCell(-1).id = `vac-count-${d}`;
+        wRow.insertCell(-1).id = `work-count-${d}`;
     }
 
     const list = (currentType === 'manager') ? masterData.manager : masterData.staff;
@@ -98,7 +99,7 @@ function renderTable(attendance) {
                 const match = attendance.find(r => r[0] == currentMonth && r[1] == currentType && r[2] == p.name && r[3] == i);
                 const status = (match && match[4]) ? match[4] : "";
                 td.innerText = status;
-                if(status) applyStatusColor(td, status); // 색상 적용 함수 호출
+                if(status) applyStatusColor(td, status);
                 
                 td.setAttribute('data-day', i);
                 td.onclick = function() { showDropdown(this); };
@@ -110,26 +111,13 @@ function renderTable(attendance) {
     updateCounts();
 }
 
-// 상태별 색상 적용 함수 (디자인 요구사항 반영)
 function applyStatusColor(cell, status) {
     cell.classList.remove('status-연차');
-    cell.style.color = "";
-    cell.style.fontWeight = "";
-
-    if(status === '연차') {
-        cell.classList.add('status-연차');
-        cell.style.color = "#1976d2"; // 파란색
-        cell.style.fontWeight = "bold";
-    } else if(status.includes('반차')) {
-        cell.style.color = "#ef6c00"; // 주황색
-        cell.style.fontWeight = "bold";
-    } else if(status === '반반차') {
-        cell.style.color = "#4caf50"; // 초록색
-        cell.style.fontWeight = "bold";
-    } else if(status === '출장' || status === '휴가') {
-        cell.style.color = "#9c27b0"; // 보라색
-        cell.style.fontWeight = "bold";
-    }
+    cell.style.color = ""; cell.style.fontWeight = "";
+    if(status === '연차') { cell.classList.add('status-연차'); cell.style.color = "#1976d2"; cell.style.fontWeight = "bold"; }
+    else if(status.includes('반차')) { cell.style.color = "#ef6c00"; cell.style.fontWeight = "bold"; }
+    else if(status === '반반차') { cell.style.color = "#4caf50"; cell.style.fontWeight = "bold"; }
+    else if(status === '출장' || status === '휴가') { cell.style.color = "#9c27b0"; cell.style.fontWeight = "bold"; }
 }
 
 function showDropdown(cell) {
@@ -137,7 +125,7 @@ function showDropdown(cell) {
     const currentStatus = cell.innerText;
     const statuses = ['', '연차', '오전반차', '오후반차', '반반차', '휴가', '출장'];
     const select = document.createElement('select');
-    select.style.cssText = "width:100%; height:100%; border:none; background:transparent; font-size:11px; text-align:center; appearance:none; outline:none;";
+    select.style.cssText = "width:100%; height:100%; border:none; background:transparent; font-size:11px; text-align:center; outline:none;";
     
     statuses.forEach(s => {
         const opt = document.createElement('option');
@@ -148,7 +136,6 @@ function showDropdown(cell) {
 
     cell.innerText = ''; cell.appendChild(select);
     select.focus();
-    
     select.onchange = async function() {
         const newStatus = this.value;
         const day = cell.getAttribute('data-day');
@@ -156,44 +143,52 @@ function showDropdown(cell) {
         cell.innerText = newStatus;
         applyStatusColor(cell, newStatus);
         updateCounts(); 
-        
-        // 저장 기능 (POST 전송)
-        try {
-            await fetch(GAN_URL, { 
-                method: "POST", 
-                mode: "no-cors", // 구글 앱스 스크립트 특성상 no-cors가 안정적일 수 있음
-                body: JSON.stringify({ month: currentMonth, type: currentType, name: name, day: day, status: newStatus }) 
-            });
-        } catch(e) { console.error("저장 실패:", e); }
+        await fetch(GAN_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ month: currentMonth, type: currentType, name: name, day: day, status: newStatus }) });
     };
     select.onblur = function() { if (cell.contains(this)) cell.innerText = this.value; };
 }
 
 function updateCounts() {
     const rows = document.querySelectorAll('#attendance-body tr');
+    const totalPeople = rows.length;
+    const dailyVacation = Array(32).fill(0);
+
     rows.forEach(row => {
         const name = row.getAttribute('data-person');
         const cells = row.querySelectorAll('.at-cell');
-        let used = 0;
+        let usedForPerson = 0;
         
         cells.forEach(c => {
             const txt = c.innerText;
-            // [수식 수정] 연차 1, 반차 0.5, 반반차 0.25
-            if (txt === '연차') used += 1;
-            else if (txt.includes('반차')) used += 0.5;
-            else if (txt === '반반차') used += 0.25;
+            const day = parseInt(c.getAttribute('data-day'));
+            // 수식 반영: 연차 1, 반차 0.5, 반반차 0.25
+            if (txt === '연차') { usedForPerson += 1; dailyVacation[day] += 1; }
+            else if (txt.includes('반차')) { usedForPerson += 0.5; dailyVacation[day] += 0.5; }
+            else if (txt === '반반차') { usedForPerson += 0.25; dailyVacation[day] += 0.25; }
+            else if (txt === '휴가') { dailyVacation[day] += 1; }
         });
         
         const unused = parseFloat(row.cells[3].innerText) || 0;
-        const req = parseFloat(row.cells[2].innerText) || 0;
-        const rem = unused - used;
+        const rem = unused - usedForPerson;
         const remEl = document.getElementById(`rem-${name}`);
-        if(remEl) remEl.innerText = rem.toFixed(2).replace(/\.00$/, ''); // 소수점 표시 처리
+        if(remEl) remEl.innerText = rem.toFixed(2).replace(/\.00$/, '');
         
+        const req = parseFloat(row.cells[2].innerText) || 0;
         const rate = req > 0 ? ((req - rem) / req * 100) : 0;
         const rateEl = document.getElementById(`rate-${name}`);
         if(rateEl) rateEl.innerText = Math.floor(rate) + '%';
     });
+
+    // 하단 휴가/근무 인원 수치 주입
+    for (let d = 1; d <= 31; d++) {
+        const vacCell = document.getElementById(`vac-count-${d}`);
+        const workCell = document.getElementById(`work-count-${d}`);
+        if (vacCell && workCell) {
+            const vacNum = dailyVacation[d];
+            vacCell.innerText = vacNum > 0 ? vacNum : '0';
+            workCell.innerText = totalPeople - Math.ceil(vacNum); // 근무인원은 휴가자(반차포함 올림) 제외 계산
+        }
+    }
 }
 
 function renderMonthPicker() {
@@ -203,7 +198,6 @@ function renderMonthPicker() {
         const btn = document.createElement('button');
         btn.innerText = m + '월';
         btn.className = `month-btn ${m === currentMonth ? 'active' : ''}`;
-        btn.style.cssText = "padding:5px 10px; cursor:pointer; border:1px solid #ddd; background:white; border-radius:4px; font-size:12px;";
         if(m === currentMonth) { btn.style.background = "#d32f2f"; btn.style.color = "white"; }
         btn.onclick = () => { currentMonth = m; renderMonthPicker(); renderTable(lastFetchedAttendance); };
         container.appendChild(btn);
