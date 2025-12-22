@@ -1,71 +1,51 @@
-const GAN_URL = "https://script.google.com/macros/s/AKfycby42R57TUGVePyKRxfsFqeLuinCy0rxIVZudX2-Z1tERUpYCxJWw50EU0ZsqIrVGlWy/exec";
+const GAN_URL = "여기에_구글_배포_URL을_넣으세요";
 
 let currentType = 'manager';
 let currentYear = 2026;
-let currentMonth = 1; // 초기 로딩 시 1월
+let currentMonth = 1; 
 
 let masterData = { manager: [], staff: [] }; 
+let lastFetchedAttendance = []; // 출석 기록 임시 저장용
 
 window.onload = function() {
-    createMonthPicker(); // 월 선택 버튼 생성
+    createMonthPicker(); 
     loadAllData();
 };
 
-// 1. 월 선택 버튼 생성 (디자인 유지)
+// 1. 월 선택 버튼 생성
 function createMonthPicker() {
     const header = document.querySelector('.header') || document.body;
     const pickerDiv = document.createElement('div');
     pickerDiv.className = 'month-picker';
     pickerDiv.style.cssText = "text-align:center; margin-bottom:15px; padding:10px; background:#f8f9fa; border-radius:8px;";
     
-    // 1월부터 12월까지 버튼 생성
     for (let m = 1; m <= 12; m++) {
         const btn = document.createElement('button');
         btn.innerText = `${m}월`;
         btn.className = 'tab-btn'; 
         btn.style.margin = "2px";
-        btn.style.padding = "5px 12px";
         if(m === currentMonth) btn.style.background = "#d32f2f"; 
         
         btn.onclick = function() {
             currentMonth = m;
             document.querySelectorAll('.month-picker .tab-btn').forEach(b => b.style.background = "");
             this.style.background = "#d32f2f";
-            loadAllData();
+            renderTable(lastFetchedAttendance); // 월 변경 시 다시 그리기
         };
         pickerDiv.appendChild(btn);
     }
     header.prepend(pickerDiv);
 }
 
-// 2. 2026년 공휴일 정보 (주말 제외한 법정공휴일)
-function getPublicHolidays(month) {
-    const holidays = {
-        1: [1],             // 신정
-        2: [16, 17, 18],    // 설날 연휴
-        3: [1, 2],          // 삼일절(대체휴무 포함)
-        5: [5, 24, 25],     // 어린이날, 부처님오신날(대체포함)
-        6: [6],             // 현충일
-        8: [15, 17],        // 광복절(대체포함)
-        9: [24, 25, 26],    // 추석 연휴
-        10: [3, 5, 9],      // 개천절(대체포함), 한글날
-        12: [25]            // 크리스마스
-    };
-    return holidays[month] || [];
+// 2. 탭 전환 함수 (지점장/직원 클릭 시 실행)
+function switchTab(type) {
+    currentType = type;
+    document.querySelectorAll('.tabs .tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(`btn-${type}`).classList.add('active');
+    renderTable(lastFetchedAttendance);
 }
 
-// 3. 주말 자동 계산
-function getWeekends(year, month) {
-    let weekends = [];
-    let lastDay = new Date(year, month, 0).getDate(); 
-    for (let d = 1; d <= lastDay; d++) {
-        let dayOfWeek = new Date(year, month - 1, d).getDay();
-        if (dayOfWeek === 0 || dayOfWeek === 6) weekends.push(d);
-    }
-    return weekends;
-}
-
-// 4. 전체 데이터 로드
+// 3. 구글 시트에서 데이터 로드
 async function loadAllData() {
     const tbody = document.getElementById('attendance-body');
     if (tbody) tbody.innerHTML = '<tr><td colspan="37" style="text-align:center;">데이터 동기화 중...</td></tr>';
@@ -74,18 +54,30 @@ async function loadAllData() {
         const response = await fetch(GAN_URL);
         const res = await response.json();
         
+        if (res.error) {
+            alert(res.error);
+            return;
+        }
+
         masterData.manager = [];
         masterData.staff = [];
+        
+        // 시트 데이터 분류 (A열 기준)
         res.config.slice(1).forEach(row => {
             const person = { branch: row[1], name: row[2], required: row[3], unused: row[4] };
             if (row[0] === 'manager') masterData.manager.push(person);
-            else masterData.staff.push(person);
+            else if (row[0] === 'staff') masterData.staff.push(person);
         });
 
-        renderTable(res.attendance);
-    } catch (e) { console.error("로드 실패"); }
+        lastFetchedAttendance = res.attendance;
+        renderTable(lastFetchedAttendance);
+    } catch (e) {
+        console.error("로드 실패:", e);
+        if (tbody) tbody.innerHTML = '<tr><td colspan="37" style="text-align:center; color:red;">데이터 로드 실패 (URL 또는 시트 설정을 확인하세요)</td></tr>';
+    }
 }
 
+// 4. 표 그리기 (핵심)
 function renderTable(attendance) {
     const tbody = document.getElementById('attendance-body');
     if (!tbody) return;
@@ -95,6 +87,11 @@ function renderTable(attendance) {
     const weekends = getWeekends(currentYear, currentMonth);
     const holidays = getPublicHolidays(currentMonth);
     const allHolidays = [...new Set([...weekends, ...holidays])];
+
+    if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="37" style="text-align:center; padding:20px;">[${currentType}] 명단이 없습니다.</td></tr>`;
+        return;
+    }
 
     list.forEach(person => {
         const tr = document.createElement('tr');
@@ -112,8 +109,7 @@ function renderTable(attendance) {
             if(match) status = match[4];
 
             const isHoliday = allHolidays.includes(i) ? 'weekend' : '';
-            const statusClass = getStatusClass(status);
-            rowHtml += `<td class="at-cell ${isHoliday} ${statusClass}" data-day="${i}" onclick="showDropdown(this)">${status}</td>`;
+            rowHtml += `<td class="at-cell ${isHoliday} ${getStatusClass(status)}" data-day="${i}" onclick="showDropdown(this)">${status}</td>`;
         }
         tr.innerHTML = rowHtml;
         tbody.appendChild(tr);
@@ -121,6 +117,22 @@ function renderTable(attendance) {
     
     applyFooterColor(allHolidays);
     updateCounts();
+}
+
+// 주말/공휴일/계산 관련 보조 함수들 (디자인 유지)
+function getWeekends(year, month) {
+    let weekends = [];
+    let lastDay = new Date(year, month, 0).getDate(); 
+    for (let d = 1; d <= lastDay; d++) {
+        let dayOfWeek = new Date(year, month - 1, d).getDay();
+        if (dayOfWeek === 0 || dayOfWeek === 6) weekends.push(d);
+    }
+    return weekends;
+}
+
+function getPublicHolidays(month) {
+    const holidays = { 1:[1], 2:[16,17,18], 3:[1,2], 5:[5,24,25], 6:[6], 8:[15,17], 9:[24,25,26], 10:[3,5,9], 12:[25] };
+    return holidays[month] || [];
 }
 
 function applyFooterColor(holidays) {
@@ -132,6 +144,13 @@ function applyFooterColor(holidays) {
             else cell.classList.remove('weekend');
         });
     });
+}
+
+function getStatusClass(status) {
+    if (status === '휴가' || status === '연차') return 'status-연차';
+    if (status.includes('반차') && status !== '반반차') return 'status-반차';
+    if (status === '반반차') return 'status-반반차';
+    return '';
 }
 
 function showDropdown(cell) {
@@ -168,17 +187,9 @@ function showDropdown(cell) {
             setTimeout(() => { cell.style.backgroundColor = ""; }, 500);
         } catch (e) {
             alert("저장 실패");
-            cell.style.backgroundColor = "#ffcdd2";
         }
     };
     select.onblur = function() { if (cell.contains(this)) cell.innerText = this.value; };
-}
-
-function getStatusClass(status) {
-    if (status === '휴가' || status === '연차') return 'status-연차';
-    if (status.includes('반차') && status !== '반반차') return 'status-반차';
-    if (status === '반반차') return 'status-반반차';
-    return '';
 }
 
 function updateCounts() {
@@ -199,22 +210,9 @@ function updateCounts() {
             const reqVal = parseFloat(reqEl.innerText);
             const unVal = parseFloat(unEl.innerText);
             const rem = unVal - used;
-            const rate = reqVal > 0 ? ((reqVal - rem) / reqVal) * 100 : 0;
             document.getElementById(`rem-${name}`).innerText = rem % 1 === 0 ? rem : rem.toFixed(2);
+            const rate = reqVal > 0 ? ((reqVal - rem) / reqVal) * 100 : 0;
             document.getElementById(`rate-${name}`).innerText = Math.floor(rate) + '%';
         }
     });
-    const hFooter = document.querySelectorAll('#holiday-row td:not(.footer-label)');
-    const wFooter = document.querySelectorAll('#work-row td:not(.footer-label)');
-    for (let i = 0; i < 31; i++) {
-        let personCount = 0;
-        rows.forEach(row => {
-            const cell = row.querySelectorAll('.at-cell')[i];
-            if (cell && cell.innerText !== '') personCount += 1;
-        });
-        if(hFooter[i]) hFooter[i].innerText = personCount || '0';
-        if(wFooter[i]) wFooter[i].innerText = rows.length - personCount;
-    }
 }
-
-
