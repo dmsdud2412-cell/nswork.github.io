@@ -1,4 +1,4 @@
-const GAN_URL = "여기에_구글_배포_URL을_넣으세요";
+const GAN_URL = "https://script.google.com/macros/s/AKfycby42R57TUGVePyKRxfsFqeLuinCy0rxIVZudX2-Z1tERUpYCxJWw50EU0ZsqIrVGlWy/exec";
 
 let currentType = 'manager';
 let currentYear = 2026;
@@ -216,3 +216,4 @@ function updateCounts() {
         }
     });
 }
+
