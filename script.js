@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const cells = document.querySelectorAll('.at-cell');
-    // 요청하신 순서: 빈칸, 휴가, 연차, 오전반차, 오후반차, 반반차, 출장
+    // 클릭 순서 반영
     const statuses = ['', '휴가', '연차', '오전반차', '오후반차', '반반차', '출장'];
 
     cells.forEach(cell => {
@@ -11,10 +11,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             cell.innerText = nextStatus;
 
-            // 기존 색상 클래스 제거
+            // 기존 색상 클래스 모두 제거
             cell.classList.remove('status-휴가', 'status-연차', 'status-반차', 'status-반반차');
             
-            // 색상 부여 (휴가와 연차는 동일한 CSS 클래스 적용 가능하도록 설정)
+            // 상태에 따른 클래스 부여
             if (nextStatus === '휴가') cell.classList.add('status-휴가');
             else if (nextStatus === '연차') cell.classList.add('status-연차');
             else if (nextStatus.includes('반차') && nextStatus !== '반반차') cell.classList.add('status-반차');
@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             allCells.forEach(c => {
                 const txt = c.innerText;
-                // 계산 점수: 연차만 1점, 반차 0.5점, 반반차 0.25점 (휴가/출장은 0점 유지)
+                // 계산 점수 (요청하신 대로 연차/반차/반반차만 합산)
                 if (txt === '연차') usedSum += 1;
                 else if (txt.includes('반차') && txt !== '반반차') usedSum += 0.5;
                 else if (txt === '반반차') usedSum += 0.25;
@@ -45,8 +45,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const requiredVal = parseFloat(document.getElementById(`required-${name}`).innerText) || 0;
             const unusedVal = parseFloat(document.getElementById(`unused-${name}`).innerText) || 0;
 
+            // 수식: 잔여 = 미사용 - 사용량
             const remainingVal = unusedVal - usedSum;
-            // 사용률 수식: (필수 - 잔여) / 필수 * 100
+            // 수식: 사용률 = (필수 - 잔여) / 필수 * 100
             const usageRate = requiredVal > 0 ? ((requiredVal - remainingVal) / requiredVal) * 100 : 0;
 
             const remainingEl = document.getElementById(`remaining-${name}`);
@@ -56,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
             rateEl.innerText = Math.floor(usageRate) + '%';
         });
 
-        // 하단 인원 합계 업데이트
+        // 하단 요약 업데이트
         const holidayFooter = document.querySelectorAll('#holiday-row td:not(.footer-label)');
         const workFooter = document.querySelectorAll('#work-row td:not(.footer-label)');
         
