@@ -2,20 +2,34 @@
 body { font-family: 'Malgun Gothic', sans-serif; padding: 20px; background: #f0f2f5; }
 .container { background: white; padding: 20px; border-radius: 8px; overflow-x: auto; }
 
+/* 표 전체 설정 */
 table { 
-    width: 100%; 
     border-collapse: collapse; 
-    table-layout: fixed; /* 모든 칸의 너비를 고정하여 줄을 맞춤 */
-    min-width: 1500px; 
+    table-layout: fixed; /* 칸 너비 강제 고정 활성화 */
+    width: 1650px;       /* 전체 너비를 넉넉히 고정 (80*2 + 45*4 + 40*31 + alpha) */
+    border: 2px solid #333;
 }
 
-th, td { border: 1px solid #bbb; text-align: center; height: 38px; font-size: 13px; overflow: hidden; }
-th { background: #f4f4f4; }
+/* 모든 셀의 공통 높이와 선 설정 */
+th, td { 
+    border: 1px solid #aaa; 
+    text-align: center; 
+    height: 40px; 
+    font-size: 13px;
+    padding: 0;
+}
+
+/* 각 열(Column)의 너비를 직접 지정 */
+.col-branch { width: 90px; }      /* 지점 */
+.col-manager { width: 100px; }     /* 지점장 */
+.col-usage { width: 50px; }       /* 필수, 미사용, 잔여, 사용률 각각 */
+.col-day { width: 40px; }         /* 날짜 칸 (1~31일 동일) */
+
+th { background: #f4f4f4; font-weight: bold; }
 .weekend { background: #fff0f0; }
+.usage-header { background: #e8f4fd; }
 
-/* 내부 테이블 줄 맞춤 핵심 */
+/* 내부 데이터 입력 칸 (줄 맞춤용) */
 .daily-attendance-row, .sub-row, .summary-area { padding: 0 !important; }
-table table { width: 100%; height: 100%; border: none; table-layout: fixed; border-collapse: collapse; }
-table table td { border: 0.5px solid #ddd; height: 38px; }
-
-.footer-title { background: #eee; font-weight: bold; }
+.inner-table { width: 100%; height: 100%; border-collapse: collapse; table-layout: fixed; }
+.inner-table td { border: 0.5px solid #ddd; width: 40px; height: 40px; } /* 날짜 칸 너비 40px 유지 */
