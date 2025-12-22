@@ -1,35 +1,51 @@
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Malgun Gothic', sans-serif; padding: 20px; background: #f0f2f5; }
-.container { background: white; padding: 20px; border-radius: 8px; overflow-x: auto; }
-
-/* 표 전체 설정 */
-table { 
-    border-collapse: collapse; 
-    table-layout: fixed; /* 칸 너비 강제 고정 활성화 */
-    width: 1650px;       /* 전체 너비를 넉넉히 고정 (80*2 + 45*4 + 40*31 + alpha) */
-    border: 2px solid #333;
+body {
+    font-family: 'Malgun Gothic', sans-serif;
+    margin: 20px;
+    background-color: #f8f9fa;
 }
 
-/* 모든 셀의 공통 높이와 선 설정 */
-th, td { 
-    border: 1px solid #aaa; 
-    text-align: center; 
-    height: 40px; 
+.container {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    display: inline-block; /* 표 크기에 맞게 컨테이너 조정 */
+    min-width: 100%;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: auto; /* 브라우저가 최적의 비율로 칸을 배분 */
+}
+
+th, td {
+    border: 1px solid #dee2e6;
+    padding: 8px 4px;
+    text-align: center;
     font-size: 13px;
-    padding: 0;
+    min-width: 35px; /* 날짜 칸 최소 너비 */
 }
 
-/* 각 열(Column)의 너비를 직접 지정 */
-.col-branch { width: 90px; }      /* 지점 */
-.col-manager { width: 100px; }     /* 지점장 */
-.col-usage { width: 50px; }       /* 필수, 미사용, 잔여, 사용률 각각 */
-.col-day { width: 40px; }         /* 날짜 칸 (1~31일 동일) */
+thead th {
+    background-color: #e9ecef;
+    font-weight: bold;
+}
 
-th { background: #f4f4f4; font-weight: bold; }
-.weekend { background: #fff0f0; }
-.usage-header { background: #e8f4fd; }
+tbody tr:hover {
+    background-color: #f1f3f5;
+}
 
-/* 내부 데이터 입력 칸 (줄 맞춤용) */
-.daily-attendance-row, .sub-row, .summary-area { padding: 0 !important; }
-.inner-table { width: 100%; height: 100%; border-collapse: collapse; table-layout: fixed; }
-.inner-table td { border: 0.5px solid #ddd; width: 40px; height: 40px; } /* 날짜 칸 너비 40px 유지 */
+.attendance-cell {
+    cursor: pointer;
+}
+
+tfoot td {
+    background-color: #f8f9fa;
+    font-weight: bold;
+}
