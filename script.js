@@ -1,7 +1,6 @@
-// 1. 구글 시트 연결 주소
-const GAN_URL = "https://script.google.com/macros/s/AKfycbxzW9z5RlDSmrYzMAH_2OCmorPWFbW4FposdvNNfaTOSsuzvamK5ANZIZL3-S43roYh/exec";
+const GAN_URL = "사용자님의_새로운_웹앱_URL을_여기에_넣어주세요";
 
-// 2. 명단 데이터
+// 인원 명단 (나중에 구글 시트로 옮기기 전까지는 여기서 수정하세요)
 const managerList = [
     { branch: "대전동지점", name: "이승삼", required: 17, unused: 17 },
     { branch: "대전서지점", name: "김학형", required: 17, unused: 17 },
@@ -12,35 +11,41 @@ const managerList = [
     { branch: "충청영업기획", name: "나병운", required: 17, unused: 17 }
 ];
 
-const staffList = [];
-for (let i = 1; i <= 50; i++) {
-    staffList.push({ branch: `지점${Math.ceil(i/5)}`, name: `직원${i}`, required: 15, unused: 15 });
-}
+const staffList = []; // 직원 명단은 현재 비어있음
 
 let currentType = 'manager';
-const holidayDates = [1, 3, 4, 10, 11, 17, 18, 24, 25, 31];
+let currentYear = new Date().getFullYear();
+let currentMonth = new Date().getMonth() + 1; // 현재 월 (1~12)
 
-// [시작] 페이지 로드 시 명단부터 즉시 그리기
-window.onload = function() {
-    renderBaseTable();    // 명단 0.1초 만에 띄우기
-    loadDataFromServer(); // 구글 시트에서 데이터 가져오기
-};
-
-function switchTab(type) {
-    currentType = type;
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    document.getElementById(`btn-${type}`).classList.add('active');
-    renderBaseTable(); 
-    loadDataFromServer();
+// [자동 주말 계산] 이번 달의 주말(토, 일) 날짜를 배열로 반환
+function getWeekends(year, month) {
+    let weekends = [];
+    let date = new Date(year, month - 1, 1);
+    while (date.getMonth() === month - 1) {
+        if (date.getDay() === 0 || date.getDay() === 6) { // 0: 일요일, 6: 토요일
+            weekends.push(date.getDate());
+        }
+        date.setDate(date.getDate() + 1);
+    }
+    return weekends;
 }
 
-// 명단 레이아웃만 먼저 만드는 함수
+// 공휴일을 여기에 숫자로 넣으세요 (예: 1월 1일, 1월 28일)
+const publicHolidays = [1, 28, 29, 30]; 
+
+window.onload = function() {
+    renderBaseTable();
+    loadDataFromServer();
+};
+
 function renderBaseTable() {
     const tbody = document.getElementById('attendance-body');
     if (!tbody) return;
     tbody.innerHTML = '';
     
     const dataList = (currentType === 'manager') ? managerList : staffList;
+    const weekends = getWeekends(currentYear, currentMonth);
+    const allHolidays = [...new Set([...weekends, ...publicHolidays])];
 
     dataList.forEach(person => {
         const tr = document.createElement('tr');
@@ -53,47 +58,60 @@ function renderBaseTable() {
             <td class="num-cell" id="rate-${person.name}">0%</td>`;
         
         for (let i = 1; i <= 31; i++) {
-            const holidayClass = holidayDates.includes(i) ? 'weekend' : '';
+            // 주말이나 공휴일이면 'weekend' 클래스를 붙여 빨간색 음영 적용
+            const holidayClass = allHolidays.includes(i) ? 'weekend' : '';
             rowHtml += `<td class="at-cell ${holidayClass}" data-day="${i}" onclick="showDropdown(this)"></td>`;
         }
         tr.innerHTML = rowHtml;
         tbody.appendChild(tr);
     });
-    updateCounts(); // 초기 계산
+    
+    // 하단 합계행(footer)에도 주말 색상 입히기
+    applyFooterColor(allHolidays);
+    updateCounts();
 }
 
-// 서버에서 저장된 값 가져와서 칸 채우기
+function applyFooterColor(holidays) {
+    const footerCells = document.querySelectorAll('.footer-row td:not(.footer-label)');
+    footerCells.forEach((cell, idx) => {
+        const day = idx + 1;
+        if (holidays.includes(day)) {
+            cell.classList.add('weekend');
+        } else {
+            cell.classList.remove('weekend');
+        }
+    });
+}
+
 async function loadDataFromServer() {
     try {
         const response = await fetch(GAN_URL);
         const serverData = await response.json();
         
         serverData.forEach(row => {
-            const [type, name, day, status] = row;
-            if (type === currentType) {
+            const [month, type, name, day, status] = row;
+            if (month == currentMonth && type === currentType) {
                 const tr = document.querySelector(`tr[data-person="${name}"]`);
                 if (tr) {
                     const cell = tr.querySelector(`td[data-day="${day}"]`);
                     if (cell) {
                         cell.innerText = status;
-                        cell.className = `at-cell ${holidayDates.includes(parseInt(day)) ? 'weekend' : ''} ${getStatusClass(status)}`;
+                        const isHoliday = cell.classList.contains('weekend') ? 'weekend ' : '';
+                        cell.className = `at-cell ${isHoliday}${getStatusClass(status)}`;
                     }
                 }
             }
         });
-        updateCounts(); // 데이터 로드 후 재계산
-    } catch (e) {
-        console.log("데이터 로드 중 오류가 발생했으나 명단은 유지됩니다.");
-    }
+        updateCounts();
+    } catch (e) { console.log("로드 중"); }
 }
 
-// 드롭다운 선택 및 즉시 반영 로직
 function showDropdown(cell) {
     if (cell.querySelector('select')) return;
     const currentStatus = cell.innerText;
     const statuses = ['', '휴가', '연차', '오전반차', '오후반차', '반반차', '출장'];
     const select = document.createElement('select');
-    select.style.cssText = "width:100%; height:100%; border:none; background:transparent; font-size:12px; text-align:center; cursor:pointer;";
+    select.style.cssText = "width:100%; height:100%; border:none; background:transparent; font-size:12px; text-align:center;";
 
     statuses.forEach(s => {
         const opt = document.createElement('option');
@@ -112,34 +130,37 @@ function showDropdown(cell) {
         const day = cell.getAttribute('data-day');
         const name = cell.parentElement.getAttribute('data-person');
 
-        // [핵심] 서버 응답 기다리지 않고 화면부터 즉시 변경
         cell.innerText = newStatus;
-        cell.className = `at-cell ${holidayDates.includes(parseInt(day)) ? 'weekend' : ''} ${getStatusClass(newStatus)}`;
-        
-        // 즉시 숫자 업데이트 (속도 개선 포인트)
+        const isHoliday = cell.classList.contains('weekend') ? 'weekend ' : '';
+        cell.className = `at-cell ${isHoliday}${getStatusClass(newStatus)}`;
         updateCounts(); 
 
-        // 저장 진행 중 표시 (노란색)
         cell.style.backgroundColor = "#fff9c4"; 
 
         try {
             const res = await fetch(GAN_URL, {
                 method: "POST",
-                body: JSON.stringify({ type: currentType, name: name, day: day, status: newStatus })
+                body: JSON.stringify({ 
+                    month: currentMonth, 
+                    type: currentType, 
+                    name: name, 
+                    day: day, 
+                    status: newStatus 
+                })
             });
             if(res.ok) {
-                // 저장 성공 시 초록색 반짝
                 cell.style.backgroundColor = "#c8e6c9"; 
                 setTimeout(() => { cell.style.backgroundColor = ""; }, 500);
             }
         } catch (e) {
-            alert("구글 시트 저장 실패! 인터넷 연결을 확인해주세요.");
-            cell.style.backgroundColor = "#ffcdd2"; // 에러 시 빨간색
+            alert("저장 실패");
+            cell.style.backgroundColor = "#ffcdd2";
         }
     };
     select.onblur = function() { if (cell.contains(this)) cell.innerText = this.value; };
 }
 
+// ... (getStatusClass, updateCounts 함수는 기존과 동일하게 유지) ...
 function getStatusClass(status) {
     if (status === '휴가' || status === '연차') return 'status-연차';
     if (status.includes('반차') && status !== '반반차') return 'status-반차';
@@ -171,7 +192,6 @@ function updateCounts() {
         }
     });
     
-    // 하단 합계 업데이트
     const hFooter = document.querySelectorAll('#holiday-row td:not(.footer-label)');
     const wFooter = document.querySelectorAll('#work-row td:not(.footer-label)');
     for (let i = 0; i < 31; i++) {
