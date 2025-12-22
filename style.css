@@ -14,21 +14,28 @@ thead tr:nth-child(3) th { top: 76px; }
 
 .usage-header { background: #e3f2fd !important; color: #1976d2; }
 .usage-cell { background: #f1f8ff; font-size: 11px; } 
-.weekend { background: #fff0f0 !important; } /* 세로 음영색 */
+
+/* 휴일 음영(연분홍) 디자인 */
+.weekend { background: #fff0f0 !important; }
 .holiday-text { color: red !important; font-weight: bold; }
 
-tbody td:nth-child(3), tbody td:nth-child(4), tbody td:nth-child(5), tbody td:nth-child(6) {
-    font-size: 11px !important; font-weight: normal; color: #333;
-}
+/* 수치 열 스타일(필수/미사용/잔여/사용률) */
+.num-cell { font-size: 11px !important; color: #333; }
 
+/* 근태 입력 셀 기본 스타일 */
 .at-cell { cursor: pointer; transition: 0.2s; background: #fff; font-size: 12px; }
+.at-cell:hover { background: #f0f0f0; }
+
+/* 상태별 배경색 디자인 보존 */
 .status-연차 { background: #ffcccc !important; font-weight: bold; }
 .status-반차 { background: #fffac2 !important; font-size: 11px; }
 .status-반반차 { background: #e2fce2 !important; font-size: 9px !important; letter-spacing: -1px; font-weight: bold; }
 
+/* 하단 고정 푸터 */
 tfoot td { background: #fafafa; font-weight: bold; font-size: 12px; position: sticky; bottom: 0; z-index: 10; outline: 0.5px solid #bbb; }
 .footer-label { background: #eee !important; }
 
+/* 탭 버튼 디자인 */
 .tab-menu { display: flex; gap: 2px; margin-bottom: -2px; }
 .tab-btn { padding: 10px 30px; border: 1px solid #bbb; background: #eee; cursor: pointer; font-weight: bold; border-radius: 8px 8px 0 0; font-size: 12px; }
 .tab-btn.active { background: white; border-bottom: 2px solid white; border-top: 3px solid #1976d2; color: #1976d2; z-index: 10; }
