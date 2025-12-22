@@ -11,52 +11,54 @@ let lastFetchedAttendance = [];
 window.onload = () => { 
     renderMonthPicker(); 
     loadAllData(); 
-    // 버튼이 중복 생성되지 않도록 처음에 한 번만 확실히 생성
-    addExcelButton(); 
 };
 
-// 엑셀 저장 버튼 생성 로직 (사라지지 않게 배치 고정)
+// [수정] 엑셀 버튼 생성 및 위치 보정
 function addExcelButton() {
-    let btn = document.getElementById('btn-excel');
-    if (btn) return; // 이미 있으면 생성 안함
+    if (document.getElementById('btn-excel')) return;
 
     const container = document.getElementById('month-picker');
-    btn = document.createElement('button');
+    if (!container) return;
+
+    const btn = document.createElement('button');
     btn.id = 'btn-excel';
     btn.innerText = '엑셀 저장 📥';
-    btn.className = 'month-btn';
-    // 디자인을 건드리지 않고 기존 버튼들과 조화를 이루도록 스타일 설정
-    btn.style.cssText = "margin-left:20px; background:#2e7d32; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:4px; font-weight:bold;";
+    // 기존 디자인 보존을 위한 스타일링
+    btn.style.cssText = "margin-left:20px; background:#2e7d32; color:white; border:none; padding:5px 12px; cursor:pointer; border-radius:4px; font-weight:bold; font-size:12px;";
     btn.onclick = downloadExcel;
     container.appendChild(btn);
 }
 
-// 엑셀 다운로드 (데이터가 깨지거나 안 열리는 문제 해결 버전)
+// [수정] 가장 확실한 엑셀 다운로드 로직 (Base64 방식)
 function downloadExcel() {
     const table = document.getElementById('attendance-table');
-    if (!table) return;
+    if (!table) {
+        alert("테이블을 찾을 수 없습니다.");
+        return;
+    }
 
     const branchInfo = myBranch ? myBranch : "전체지점";
     const filename = `2026년_${currentMonth}월_근태현황_${branchInfo}.xls`;
     
-    // 테이블의 현재 내용을 그대로 복사 (드롭다운 제외하고 텍스트만)
-    let tableHtml = table.outerHTML.replace(/<select[\s\S]*?<\/select>/g, function(match) {
-        let val = match.match(/<option value="(.*?)" selected/);
-        return val ? val[1] : "";
-    });
-
+    // 테이블 HTML 추출
+    const html = table.outerHTML;
+    
+    // 엑셀 파일 형식 데이터 생성 (한글 깨짐 방지)
+    const uri = 'data:application/vnd.ms-excel;base64,';
     const template = `
         <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
         <head><meta charset="UTF-8"></head>
-        <body>${tableHtml}</body></html>`;
+        <body>${html}</body></html>`;
 
-    const blob = new Blob([template], { type: 'application/vnd.ms-excel' });
-    const url = URL.createObjectURL(blob);
+    // Base64 인코딩을 통한 안전한 다운로드
+    const base64 = (s) => window.btoa(unescape(encodeURIComponent(s)));
+    
     const link = document.createElement('a');
-    link.href = url;
+    link.href = uri + base64(template);
     link.download = filename;
+    document.body.appendChild(link);
     link.click();
-    URL.revokeObjectURL(url);
+    document.body.removeChild(link);
 }
 
 function getHolidays(month) {
@@ -90,6 +92,7 @@ async function loadAllData() {
 }
 
 function renderTable(attendance) {
+    // 제목 업데이트 (n월 근태 현황)
     const titleEl = document.querySelector('h2') || document.getElementById('table-title');
     if (titleEl) titleEl.innerText = `${currentMonth}월 근태 현황`;
 
@@ -232,7 +235,7 @@ function renderMonthPicker() {
         btn.onclick = () => { currentMonth = m; renderMonthPicker(); loadAllData(); };
         container.appendChild(btn);
     }
-    // 월 버튼을 다시 그릴 때 엑셀 버튼도 다시 붙여줌
+    // 월 변경 시에도 엑셀 버튼이 항상 유지되도록
     addExcelButton();
 }
 
@@ -241,6 +244,5 @@ function switchTab(type) {
     document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
     document.getElementById(`btn-${type}`).classList.add('active');
     renderTable(lastFetchedAttendance);
-    // 탭 전환 시에도 엑셀 버튼 유지
     addExcelButton();
 }
