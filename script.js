@@ -1,52 +1,41 @@
-const GAN_URL = "https://script.google.com/macros/s/AKfycby42R57TUGVePyKRxfsFqeLuinCy0rxIVZudX2-Z1tERUpYCxJWw50EU0ZsqIrVGlWy/exec"; 
+const GAN_URL = "https://script.google.com/macros/s/AKfycby42R57TUGVePyKRxfsFqeLuinCy0rxIVZudX2-Z1tERUpYCxJWw50EU0ZsqIrVGlWy/exec";
 
 let currentType = 'manager';
-let currentYear = 2026;
-let currentMonth = 1; 
-let masterData = { manager: [], staff: [] }; 
-let lastFetchedAttendance = []; 
+let currentMonth = 1;
+let masterData = { manager: [], staff: [] };
+let lastFetchedAttendance = [];
 
-window.onload = function() {
-    createMonthPicker(); 
+window.onload = () => {
+    renderMonthPicker();
     loadAllData();
 };
 
-// 2026년 공휴일 및 신정(1/1)
-function getPublicHolidays(month) {
-    const holidays = { 1:[1], 2:[16,17,18], 3:[1,2], 5:[5,24,25], 6:[6], 8:[15,17], 9:[24,25,26], 10:[3,5,9], 12:[25] };
-    return holidays[month] || [];
+// 2026년 공휴일 정보
+function getHolidays(month) {
+    const data = { 1: { 1: "신정" }, 2: { 16: "설날", 17: "설날", 18: "설날" }, 3: { 1: "삼일절", 2: "대체휴무" } /* 필요시 추가 */ };
+    return data[month] || {};
 }
 
-// 주말 계산
-function getWeekends(year, month) {
-    let weekends = [];
-    let lastDay = new Date(year, month, 0).getDate(); 
-    for (let d = 1; d <= lastDay; d++) {
-        let dayOfWeek = new Date(year, month - 1, d).getDay();
-        if (dayOfWeek === 0 || dayOfWeek === 6) weekends.push(d);
+function renderMonthPicker() {
+    const container = document.getElementById('month-picker');
+    container.innerHTML = '';
+    for (let m = 1; m <= 12; m++) {
+        const btn = document.createElement('button');
+        btn.innerText = m + '월';
+        btn.className = `month-btn ${m === currentMonth ? 'active' : ''}`;
+        btn.onclick = () => { currentMonth = m; renderMonthPicker(); renderTable(lastFetchedAttendance); };
+        container.appendChild(btn);
     }
-    return weekends;
 }
 
-// 탭 전환
-function switchTab(type) {
-    currentType = type;
-    document.querySelectorAll('.tabs .tab-btn').forEach(btn => btn.classList.remove('active'));
-    document.getElementById(`btn-${type}`).classList.add('active');
-    renderTable(lastFetchedAttendance);
-}
-
-// 데이터 로드
 async function loadAllData() {
     try {
-        const response = await fetch(GAN_URL);
-        const res = await response.json();
-        masterData.manager = [];
-        masterData.staff = [];
+        const res = await (await fetch(GAN_URL)).json();
+        masterData.manager = []; masterData.staff = [];
         res.config.slice(1).forEach(row => {
-            const person = { branch: row[1], name: row[2], required: row[3], unused: row[4] };
-            if (row[0] === 'manager') masterData.manager.push(person);
-            else if (row[0] === 'staff') masterData.staff.push(person);
+            const p = { branch: row[1], name: row[2], req: row[3], unused: row[4] };
+            if (row[0] === 'manager') masterData.manager.push(p);
+            else masterData.staff.push(p);
         });
         lastFetchedAttendance = res.attendance;
         renderTable(lastFetchedAttendance);
@@ -54,138 +43,68 @@ async function loadAllData() {
 }
 
 function renderTable(attendance) {
+    const dateRow = document.getElementById('row-dates');
+    const weekRow = document.getElementById('row-weeks');
     const tbody = document.getElementById('attendance-body');
-    const dateHeader = document.getElementById('date-header');
-    const holidayRow = document.getElementById('holiday-row');
-    const workRow = document.getElementById('work-row');
+    const vRow = document.getElementById('row-vacation');
+    const wRow = document.getElementById('row-working');
+
+    dateRow.innerHTML = ''; weekRow.innerHTML = ''; tbody.innerHTML = '';
+    // 하단 인원 행 초기화 (라벨 제외)
+    while(vRow.cells.length > 1) vRow.deleteCell(1);
+    while(wRow.cells.length > 1) wRow.deleteCell(1);
+
+    document.getElementById('month-title').innerText = `${currentMonth}월 근태 현황`;
     
-    // 헤더 및 합계행 초기화 (디자인 보존)
-    dateHeader.innerHTML = '';
-    const hLabel = holidayRow.cells[0]; holidayRow.innerHTML = ''; holidayRow.appendChild(hLabel);
-    const wLabel = workRow.cells[0]; workRow.innerHTML = ''; workRow.appendChild(wLabel);
+    const holidayInfo = getHolidays(currentMonth);
+    const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
 
-    const weekends = getWeekends(currentYear, currentMonth);
-    const holidays = getPublicHolidays(currentMonth);
-    const allHolidays = [...new Set([...weekends, ...holidays])];
+    for (let d = 1; d <= 31; d++) {
+        const dateObj = new Date(2026, currentMonth - 1, d);
+        if (dateObj.getMonth() !== currentMonth - 1) break; // 해당 월의 마지막 날까지만 표시
 
-    // 날짜 및 음영 생성
-    for(let i=1; i<=31; i++) {
-        const th = document.createElement('th');
-        th.innerText = i;
-        if(allHolidays.includes(i)) th.className = 'weekend';
-        dateHeader.appendChild(th);
+        const dayIdx = dateObj.getDay(); // 0:일, 6:토
+        const isRedDay = (dayIdx === 0 || dayIdx === 6 || holidayInfo[d]);
 
-        const tdH = document.createElement('td');
-        if(allHolidays.includes(i)) tdH.className = 'weekend';
-        holidayRow.appendChild(tdH);
+        // 1. 날짜 행 (숫자)
+        const thD = document.createElement('th');
+        thD.innerText = d;
+        if(isRedDay) thD.className = 'txt-red';
+        dateRow.appendChild(thD);
 
-        const tdW = document.createElement('td');
-        if(allHolidays.includes(i)) tdW.className = 'weekend';
-        workRow.appendChild(tdW);
+        // 2. 요일/신정 행
+        const thW = document.createElement('th');
+        thW.innerText = holidayInfo[d] || weekDays[dayIdx];
+        if(isRedDay) thW.className = 'txt-red';
+        weekRow.appendChild(thW);
+
+        // 3. 하단 합계 행 (음영 없음)
+        vRow.insertCell(-1).innerText = '0';
+        wRow.insertCell(-1).innerText = '0';
     }
 
-    tbody.innerHTML = '';
+    // 명단 렌더링
     const list = (currentType === 'manager') ? masterData.manager : masterData.staff;
-
-    list.forEach(person => {
+    list.forEach(p => {
         const tr = document.createElement('tr');
-        tr.setAttribute('data-person', person.name);
-        let rowHtml = `<td>${person.branch}</td><td>${person.name}</td>
-            <td class="num-cell" id="req-${person.name}">${person.required}</td>
-            <td class="num-cell" id="un-${person.name}">${person.unused}</td>
-            <td class="num-cell" id="rem-${person.name}">${person.unused}</td>
-            <td class="num-cell" id="rate-${person.name}">0%</td>`;
+        tr.innerHTML = `<td>${p.branch}</td><td>${p.name}</td><td>${p.req}</td><td>${p.unused}</td><td>${p.unused}</td><td>0%</td>`;
         
-        for (let i = 1; i <= 31; i++) {
-            let status = "";
-            const match = attendance.find(r => r[0] == currentMonth && r[1] == currentType && r[2] == person.name && r[3] == i);
-            if(match) status = match[4];
-            const isHoliday = allHolidays.includes(i) ? 'weekend' : '';
-            rowHtml += `<td class="at-cell ${isHoliday} ${getStatusClass(status)}" data-day="${i}" onclick="showDropdown(this)">${status}</td>`;
+        for (let i = 1; i <= dateRow.cells.length; i++) {
+            const dateObj = new Date(2026, currentMonth - 1, i);
+            const dayIdx = dateObj.getDay();
+            const isRedDay = (dayIdx === 0 || dayIdx === 6 || holidayInfo[i]);
+            
+            const td = document.createElement('td');
+            td.className = `at-cell ${isRedDay ? 'bg-pink' : ''}`; // 주말/공휴일만 분홍 배경
+            tr.appendChild(td);
         }
-        tr.innerHTML = rowHtml;
         tbody.appendChild(tr);
     });
-    updateCounts();
 }
 
-function getStatusClass(status) {
-    if (status === '휴가' || status === '연차') return 'status-연차';
-    if (status.includes('반차')) return 'status-반차';
-    return '';
-}
-
-// 월 선택기 생성 (기능만 추가)
-function createMonthPicker() {
-    const header = document.querySelector('.header');
-    const div = document.createElement('div');
-    div.style.textAlign = 'center';
-    div.style.marginBottom = '15px';
-    for (let m = 1; m <= 12; m++) {
-        const btn = document.createElement('button');
-        btn.innerText = m + '월';
-        btn.className = 'tab-btn';
-        btn.style.margin = '2px';
-        if(m === currentMonth) btn.classList.add('active');
-        btn.onclick = function() {
-            currentMonth = m;
-            document.querySelectorAll('.month-picker-container button').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            renderTable(lastFetchedAttendance);
-        };
-        div.appendChild(btn);
-    }
-    div.className = 'month-picker-container';
-    header.after(div);
-}
-
-// 드롭다운 및 계산 함수는 디자인에 영향 주지 않으므로 유지
-function showDropdown(cell) {
-    if (cell.querySelector('select')) return;
-    const currentStatus = cell.innerText;
-    const statuses = ['', '연차', '오전반차', '오후반차', '반반차', '휴가', '출장'];
-    const select = document.createElement('select');
-    select.style.cssText = "width:100%; border:none; background:transparent; font-size:12px; text-align:center;";
-    statuses.forEach(s => {
-        const opt = document.createElement('option');
-        opt.value = s; opt.innerText = s === '' ? '-' : s;
-        if(s === currentStatus) opt.selected = true;
-        select.appendChild(opt);
-    });
-    cell.innerText = ''; cell.appendChild(select);
-    select.focus();
-    select.onchange = async function() {
-        const newStatus = this.value;
-        const day = cell.getAttribute('data-day');
-        const name = cell.parentElement.getAttribute('data-person');
-        cell.innerText = newStatus;
-        const isHoliday = cell.classList.contains('weekend') ? 'weekend ' : '';
-        cell.className = `at-cell ${isHoliday}${getStatusClass(newStatus)}`;
-        updateCounts(); 
-        await fetch(GAN_URL, { method: "POST", body: JSON.stringify({ month: currentMonth, type: currentType, name: name, day: day, status: newStatus }) });
-    };
-    select.onblur = function() { if (cell.contains(this)) cell.innerText = this.value; };
-}
-
-function updateCounts() {
-    const rows = document.querySelectorAll('#attendance-body tr');
-    rows.forEach(row => {
-        const name = row.getAttribute('data-person');
-        const cells = row.querySelectorAll('.at-cell');
-        let used = 0;
-        cells.forEach(c => {
-            const txt = c.innerText;
-            if (txt === '연차') used += 1;
-            else if (txt.includes('반차')) used += 0.5;
-        });
-        const reqEl = document.getElementById(`req-${name}`);
-        const unEl = document.getElementById(`un-${name}`);
-        if(reqEl && unEl) {
-            const rem = parseFloat(unEl.innerText) - used;
-            document.getElementById(`rem-${name}`).innerText = rem;
-            const reqVal = parseFloat(reqEl.innerText);
-            const rate = reqVal > 0 ? ((reqVal - rem) / reqVal) * 100 : 0;
-            document.getElementById(`rate-${name}`).innerText = Math.floor(rate) + '%';
-        }
-    });
+function switchTab(type) {
+    currentType = type;
+    document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+    document.getElementById(`btn-${type}`).classList.add('active');
+    renderTable(lastFetchedAttendance);
 }
