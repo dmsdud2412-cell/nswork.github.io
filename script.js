@@ -1,52 +1,41 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const totalDays = 31;
-    const managers = ['김진영'];
+    const cells = document.querySelectorAll('.at-cell');
+    const statuses = ['', '연차', '오전반차', '오후반차', '반반차'];
 
-    function createInnerTable(parent) {
-        const table = document.createElement('table');
-        const tr = document.createElement('tr');
-        for (let i = 1; i <= totalDays; i++) {
-            const td = document.createElement('td');
-            td.dataset.day = i;
-            tr.appendChild(td);
-        }
-        table.appendChild(tr);
-        parent.appendChild(table);
-        return tr;
-    }
+    cells.forEach(cell => {
+        cell.addEventListener('click', () => {
+            let current = cell.innerText;
+            let nextIdx = (statuses.indexOf(current) + 1) % statuses.length;
+            let nextStatus = statuses[nextIdx];
 
-    // 메인 데이터 칸 생성
-    managers.forEach(name => {
-        const mainCell = document.querySelector(`tr[data-person="${name}"] .daily-attendance-row`);
-        const subCell = document.querySelector(`tr[data-person="${name}"] + tr .sub-row`);
-        
-        [mainCell, subCell].forEach(cell => {
-            const row = createInnerTable(cell);
-            Array.from(row.cells).forEach(td => {
-                td.addEventListener('click', () => {
-                    const status = ['', '연차', '오전반차', '오후반차', '반반차'];
-                    td.innerText = status[(status.indexOf(td.innerText) + 1) % status.length];
-                    td.style.background = td.innerText === '연차' ? '#ffcccc' : (td.innerText ? '#fffac2' : '');
-                    updateSummary();
-                });
-            });
+            // 텍스트 변경
+            cell.innerText = nextStatus;
+
+            // 클래스 변경으로 색상 적용
+            cell.className = 'at-cell'; // 초기화
+            if (nextStatus === '연차') cell.classList.add('status-연차');
+            else if (nextStatus.includes('반차')) cell.classList.add('status-반차');
+            else if (nextStatus === '반반차') cell.classList.add('status-반반차');
+
+            updateCounts();
         });
     });
 
-    // 하단 요약 칸 생성
-    const holidayRow = createInnerTable(document.querySelector('#holiday-count-row-parent .summary-area'));
-    const workRow = createInnerTable(document.querySelector('#workforce-count-row-parent .summary-area'));
+    function updateCounts() {
+        const rows = document.querySelectorAll('tbody tr');
+        const holidayFooter = document.querySelectorAll('#holiday-row td:not(.footer-label)');
+        const workFooter = document.querySelectorAll('#work-row td:not(.footer-label)');
 
-    function updateSummary() {
-        for (let i = 1; i <= totalDays; i++) {
-            let count = 0;
-            document.querySelectorAll(`.daily-attendance-row td:nth-child(${i}), .sub-row td:nth-child(${i})`).forEach(c => {
-                if (c.innerText === '연차') count += 1;
-                else if (c.innerText.includes('반차')) count += 0.5;
+        for (let i = 0; i < 31; i++) {
+            let hCount = 0;
+            rows.forEach(row => {
+                let cellText = row.querySelectorAll('.at-cell')[i].innerText;
+                if (cellText === '연차') hCount += 1;
+                else if (cellText.includes('반차')) hCount += 0.5;
+                else if (cellText === '반반차') hCount += 0.25;
             });
-            holidayRow.cells[i-1].innerText = count;
-            workRow.cells[i-1].innerText = managers.length - count;
+            holidayFooter[i].innerText = hCount;
+            workFooter[i].innerText = rows.length - hCount;
         }
     }
-    updateSummary();
 });
