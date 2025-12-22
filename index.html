@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>11월 지점장 근태(휴무) 현황</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>11월 지점장 근태(휴무) 현황</h1>
+
+        <table id="attendance-table">
+            <thead>
+                <tr>
+                    <th rowspan="2" class="header-cell">지점</th>
+                    <th rowspan="2" class="header-cell">지점장</th>
+                    <th colspan="4" class="usage-header">11월 연차 사용 현황</th>
+                    <th colspan="30" class="calendar-header">날짜별 근태 현황 (11월)</th>
+                </tr>
+                <tr>
+                    <th class="usage-cell">필수 연차</th>
+                    <th class="usage-cell">미사용 일수</th>
+                    <th class="usage-cell">잔여 일수</th>
+                    <th class="usage-cell">잔여 사용률</th>
+                    <th class="day-header weekend">1<br>토</th>
+                    <th class="day-header weekend">2<br>일</th>
+                    <th class="day-header">3<br>월</th>
+                    <th class="day-header">4<br>화</th>
+                    <th class="day-header">5<br>수</th>
+                    <th class="day-header">6<br>목</th>
+                    <th class="day-header">7<br>금</th>
+                    <th class="day-header weekend">8<br>토</th>
+                    <th class="day-header weekend">9<br>일</th>
+                    <th class="day-header">10<br>월</th>
+                    <th class="day-header">11<br>화</th>
+                    <th class="day-header">12<br>수</th>
+                    <th class="day-header">13<br>목</th>
+                    <th class="day-header">14<br>금</th>
+                    <th class="day-header weekend">15<br>토</th>
+                    <th class="day-header weekend">16<br>일</th>
+                    <th class="day-header">17<br>월</th>
+                    <th class="day-header">18<br>화</th>
+                    <th class="day-header">19<br>수</th>
+                    <th class="day-header">20<br>목</th>
+                    <th class="day-header">21<br>금</th>
+                    <th class="day-header weekend">22<br>토</th>
+                    <th class="day-header weekend">23<br>일</th>
+                    <th class="day-header">24<br>월</th>
+                    <th class="day-header">25<br>화</th>
+                    <th class="day-header">26<br>수</th>
+                    <th class="day-header">27<br>목</th>
+                    <th class="day-header">28<br>금</th>
+                    <th class="day-header weekend">29<br>토</th>
+                    <th class="day-header weekend">30<br>일</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr data-person="김진영" data-total-annual="12">
+                    <td rowspan="2">대전동지점</td>
+                    <td>김진영</td>
+                    <td data-annual="required">3</td>
+                    <td data-annual="used-after-nov">2.25</td>
+                    <td data-annual="remaining">9.75</td>
+                    <td data-annual="rate">81%</td>
+                    <td colspan="30" class="daily-attendance-row" data-id="kim-jin-young">
+                        <span data-date="15" data-type="연차"></span>
+                        <span data-date="20" data-type="휴가"></span>
+                        <span data-date="21" data-type="휴가"></span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="4" class="sub-row"></td>
+                    <td colspan="30" class="sub-row">
+                        <span data-date="15" data-type="오후반차"></span>
+                    </td>
+                </tr>
+                <tr data-person="이승심" data-total-annual="12">
+                    <td colspan="2">대전서지점 이승심</td>
+                    <td data-annual="required">1</td>
+                    <td data-annual="used-after-nov">1.5</td>
+                    <td data-annual="remaining">10.5</td>
+                    <td data-annual="rate">92%</td>
+                    <td colspan="30" class="daily-attendance-row" data-id="lee-seung-shim">
+                    </td>
+                </tr>
+                </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="6" class="footer-label">휴무 인원</td>
+                    <td colspan="30" id="holiday-count-row"></td>
+                </tr>
+                <tr>
+                    <td colspan="6" class="footer-label">근무 인원</td>
+                    <td colspan="30" id="workforce-count-row"></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
