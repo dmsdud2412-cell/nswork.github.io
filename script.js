@@ -1,4 +1,4 @@
-// 1. 지점장 명단 (실제 성함 유지)
+// 1. 지점장 명단 데이터
 const managerList = [
     { branch: "대전동지점", name: "이승삼", required: 17, unused: 17 },
     { branch: "대전서지점", name: "김학형", required: 17, unused: 17 },
@@ -9,51 +9,55 @@ const managerList = [
     { branch: "충청영업기획", name: "나병운", required: 17, unused: 17 }
 ];
 
-// 2. 직원 명단 (50명 - 지점명과 이름 정확히 복구)
+// 2. 직원 명단 데이터 (50명 자동 생성)
 const staffList = [];
-const branches = ["서울", "부산", "대구", "대전", "광주", "인천", "울산", "수원"];
 for (let i = 1; i <= 50; i++) {
-    staffList.push({
-        branch: `${branches[i % branches.length]}${Math.ceil(i/8)}지점`,
-        name: `직원${i}`,
-        required: 15,
-        unused: 15
-    });
+    staffList.push({ branch: `지점${Math.ceil(i/5)}`, name: `직원${i}`, required: 15, unused: 15 });
 }
 
 let currentType = 'manager';
-const weekends = [1, 3, 4, 10, 11, 17, 18, 24, 25, 31]; // 휴일 날짜 리스트
+const holidayDates = [1, 3, 4, 10, 11, 17, 18, 24, 25, 31]; // 휴일 날짜 고정
 
-document.addEventListener('DOMContentLoaded', () => { 
-    renderTable('manager'); 
-});
+// 페이지 로드 시 실행
+window.onload = function() {
+    renderTable('manager');
+};
 
-function renderTable(type) {
+// 탭 전환 함수
+function switchTab(type) {
     currentType = type;
+    // 버튼 스타일 변경
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(`btn-${type}`).classList.add('active');
+    // 테이블 다시 그리기
+    renderTable(type);
+}
+
+// 테이블 렌더링 함수
+function renderTable(type) {
     const tbody = document.getElementById('attendance-body');
-    tbody.innerHTML = ''; 
+    if(!tbody) return;
+    tbody.innerHTML = '';
     
     const data = (type === 'manager') ? managerList : staffList;
-    const savedData = JSON.parse(localStorage.getItem(`attendance_${type}`)) || {};
+    const savedData = JSON.parse(localStorage.getItem(`attendance_202601_${type}`)) || {};
 
     data.forEach(person => {
         const tr = document.createElement('tr');
         tr.setAttribute('data-person', person.name);
         
-        let rowHtml = `<td>${person.branch}</td>
-                       <td>${person.name}</td>
-                       <td id="required-${person.name}">${person.required}</td>
-                       <td id="unused-${person.name}">${person.unused}</td>
-                       <td id="remaining-${person.name}">${person.unused}</td>
-                       <td id="rate-${person.name}">0%</td>`;
+        let rowHtml = `<td>${person.branch}</td><td>${person.name}</td>
+            <td class="num-cell" id="req-${person.name}">${person.required}</td>
+            <td class="num-cell" id="un-${person.name}">${person.unused}</td>
+            <td class="num-cell" id="rem-${person.name}">${person.unused}</td>
+            <td class="num-cell" id="rate-${person.name}">0%</td>`;
         
         for (let i = 1; i <= 31; i++) {
             const status = savedData[person.name] ? (savedData[person.name][i] || '') : '';
             const statusClass = getStatusClass(status);
-            const holidayClass = weekends.includes(i) ? 'weekend' : ''; // 세로 음영 추가
+            const holidayClass = holidayDates.includes(i) ? 'weekend' : '';
             rowHtml += `<td class="at-cell ${holidayClass} ${statusClass}" data-day="${i}">${status}</td>`;
         }
-        
         tr.innerHTML = rowHtml;
         tbody.appendChild(tr);
     });
@@ -69,26 +73,23 @@ function getStatusClass(status) {
     return '';
 }
 
-function switchTab(type) {
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    document.getElementById(`btn-${type}`).classList.add('active');
-    renderTable(type);
-}
-
 function attachCellEvents() {
     const cells = document.querySelectorAll('.at-cell');
     const statuses = ['', '휴가', '연차', '오전반차', '오후반차', '반반차', '출장'];
     
     cells.forEach(cell => {
-        cell.onclick = () => {
-            let nextIdx = (statuses.indexOf(cell.innerText) + 1) % statuses.length;
+        cell.onclick = function() {
+            let currentIdx = statuses.indexOf(this.innerText);
+            let nextIdx = (currentIdx + 1) % statuses.length;
             let status = statuses[nextIdx];
-            cell.innerText = status;
             
-            const isWeekend = cell.classList.contains('weekend') ? 'weekend ' : '';
-            cell.className = `at-cell ${isWeekend}${getStatusClass(status)}`;
+            this.innerText = status;
             
-            saveData(); // 클릭할 때마다 즉시 저장
+            // 기존 weekend 클래스는 보존하면서 상태 클래스만 교체
+            const isWeekend = this.classList.contains('weekend') ? 'weekend ' : '';
+            this.className = `at-cell ${isWeekend}${getStatusClass(status)}`;
+            
+            saveData();
             updateCounts();
         };
     });
@@ -104,41 +105,44 @@ function saveData() {
             storageData[name][cell.getAttribute('data-day')] = cell.innerText;
         });
     });
-    localStorage.setItem(`attendance_${currentType}`, JSON.stringify(storageData));
+    localStorage.setItem(`attendance_202601_${currentType}`, JSON.stringify(storageData));
 }
 
 function updateCounts() {
     const rows = document.querySelectorAll('#attendance-body tr');
     rows.forEach(row => {
         const name = row.getAttribute('data-person');
+        const cells = row.querySelectorAll('.at-cell');
         let used = 0;
-        row.querySelectorAll('.at-cell').forEach(c => {
-            if (c.innerText === '연차' || c.innerText === '휴가') used += 1;
-            else if (c.innerText.includes('반차') && c.innerText !== '반반차') used += 0.5;
-            else if (c.innerText === '반반차') used += 0.25;
+        cells.forEach(c => {
+            const txt = c.innerText;
+            if (txt === '연차' || txt === '휴가') used += 1;
+            else if (txt.includes('반차') && txt !== '반반차') used += 0.5;
+            else if (txt === '반반차') used += 0.25;
         });
         
-        const req = parseFloat(document.getElementById(`required-${name}`).innerText) || 0;
-        const unused = parseFloat(document.getElementById(`unused-${name}`).innerText) || 0;
-        const rem = unused - used;
-        const rate = req > 0 ? ((req - rem) / req) * 100 : 0;
+        const reqVal = parseFloat(document.getElementById(`req-${name}`).innerText);
+        const unVal = parseFloat(document.getElementById(`un-${name}`).innerText);
+        const rem = unVal - used;
+        const rate = reqVal > 0 ? ((reqVal - rem) / reqVal) * 100 : 0;
         
-        document.getElementById(`remaining-${name}`).innerText = rem % 1 === 0 ? rem : rem.toFixed(2);
+        document.getElementById(`rem-${name}`).innerText = rem % 1 === 0 ? rem : rem.toFixed(2);
         document.getElementById(`rate-${name}`).innerText = Math.floor(rate) + '%';
     });
 
-    const holidayFooter = document.querySelectorAll('#holiday-row td:not(.footer-label)');
-    const workFooter = document.querySelectorAll('#work-row td:not(.footer-label)');
+    const hFooter = document.querySelectorAll('#holiday-row td:not(.footer-label)');
+    const wFooter = document.querySelectorAll('#work-row td:not(.footer-label)');
+    
     for (let i = 0; i < 31; i++) {
-        let hCount = 0;
+        let count = 0;
         rows.forEach(row => {
             const cell = row.querySelectorAll('.at-cell')[i];
             const txt = cell ? cell.innerText : '';
-            if (txt === '연차' || txt === '휴가') hCount += 1;
-            else if (txt.includes('반차') && txt !== '반반차') hCount += 0.5;
-            else if (txt === '반반차') hCount += 0.25;
+            if (txt === '연차' || txt === '휴가') count += 1;
+            else if (txt.includes('반차') && txt !== '반반차') count += 0.5;
+            else if (txt === '반반차') count += 0.25;
         });
-        if(holidayFooter[i]) holidayFooter[i].innerText = hCount || '0';
-        if(workFooter[i]) workFooter[i].innerText = rows.length - hCount;
+        if(hFooter[i]) hFooter[i].innerText = count || '0';
+        if(wFooter[i]) wFooter[i].innerText = rows.length - count;
     }
 }
