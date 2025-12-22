@@ -7,7 +7,7 @@ body { font-family: 'Malgun Gothic', sans-serif; background: #f4f7f9; padding: 2
 
 /* 테이블 기본 설정 */
 table { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; min-width: 1300px; }
-th, td { border: 1px solid #bbb; text-align: center; height: 38px; font-size: 13px; } /* 상단 헤더 포함 전체 13px 고정 */
+th, td { border: 1px solid #bbb; text-align: center; height: 38px; font-size: 12px; } /* 상단 헤더 포함 전체 12px 고정 */
 
 /* 엑셀식 틀 고정 */
 thead th { position: sticky; z-index: 20; background: #f8f9fa; outline: 0.5px solid #bbb; font-weight: bold; }
@@ -42,3 +42,4 @@ tfoot td { background: #fafafa; font-weight: bold; font-size: 13px; position: st
 .tab-menu { display: flex; gap: 2px; margin-bottom: -2px; }
 .tab-btn { padding: 10px 30px; border: 1px solid #bbb; background: #eee; cursor: pointer; font-weight: bold; border-radius: 8px 8px 0 0; font-size: 14px; }
 .tab-btn.active { background: white; border-bottom: 2px solid white; border-top: 3px solid #1976d2; color: #1976d2; z-index: 10; }
+
