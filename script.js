@@ -1,4 +1,4 @@
-const GAN_URL = "https://script.google.com/macros/s/AKfycbzdJf1Ja-Ra_Wzk_JVegxlbKq59_xt6H9RiDW7J4hVAzkjzJ3tphZUuRfs-PH8U6NBd/exec";
+const GAN_URL = "https://script.google.com/macros/s/AKfycby42R57TUGVePyKRxfsFqeLuinCy0rxIVZudX2-Z1tERUpYCxJWw50EU0ZsqIrVGlWy/exec";
 
 let currentType = 'manager';
 let currentYear = 2026;
@@ -216,4 +216,5 @@ function updateCounts() {
         if(wFooter[i]) wFooter[i].innerText = rows.length - personCount;
     }
 }
+
 
