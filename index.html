@@ -2,36 +2,35 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2026 근태 관리 시스템</title>
     <style>
-        /* 사용자님이 만드신 완벽한 디자인 그대로 */
-        body { font-family: 'Pretendard', sans-serif; margin: 20px; background-color: #f4f7f9; color: #333; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
-        h1 { margin: 0; color: #2c3e50; font-size: 24px; }
+        /* 사용자님의 이미지 디자인 100% 유지 */
+        body { font-family: 'Pretendard', sans-serif; margin: 20px; background-color: #f8f9fa; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .tabs button { padding: 10px 25px; border: none; background: #e0e0e0; cursor: pointer; border-radius: 5px; font-weight: bold; }
+        .tabs button.active { background: #d32f2f; color: white; }
         
-        .tabs { display: flex; gap: 5px; }
-        .tab-btn { padding: 10px 20px; border: none; background: #e0e0e0; cursor: pointer; border-radius: 5px; font-weight: bold; transition: 0.3s; }
-        .tab-btn.active { background: #d32f2f; color: white; }
-        .tab-btn:hover { background: #bdbdbd; }
+        .month-picker { display: flex; justify-content: center; gap: 5px; margin-bottom: 20px; }
+        .month-btn { padding: 8px 15px; border: 1px solid #ddd; background: white; cursor: pointer; border-radius: 4px; }
+        .month-btn.active { background: #d32f2f; color: white; }
 
-        .table-container { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; min-width: 1500px; font-size: 13px; }
-        th, td { border: 1px solid #eee; padding: 8px; text-align: center; }
-        th { background: #f8f9fa; position: sticky; top: 0; z-index: 10; }
+        .table-container { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 12px; }
+        th, td { border: 1px solid #ededed; padding: 6px 2px; text-align: center; }
         
-        /* 사용자님이 정하신 빨간색 음영 스타일 */
-        .weekend { background-color: #ffebee !important; color: #d32f2f; }
+        /* 헤더 배경 */
+        thead th { background-color: #fcfcfc; color: #333; }
         
-        .status-연차 { background-color: #e3f2fd; color: #1976d2; font-weight: bold; }
-        .status-반차 { background-color: #f1f8e9; color: #388e3c; }
-        .status-반반차 { background-color: #fff3e0; color: #f57c00; }
+        /* [중요] 일자 및 요일 빨간색 표시 */
+        .txt-red { color: #d32f2f !important; font-weight: bold; }
+        /* [중요] 배경 음영 - 이미지와 동일한 옅은 분홍색 */
+        .bg-pink { background-color: #fff0f0 !important; }
         
-        .num-cell { font-weight: bold; background: #fafafa; width: 40px; }
-        .at-cell { cursor: pointer; width: 35px; min-width: 35px; }
-
-        .footer-row { background: #f1f3f5; font-weight: bold; }
-        .footer-label { background: #e9ecef; text-align: right; padding-right: 15px; }
+        .at-cell { cursor: pointer; height: 35px; }
+        .status-연차 { color: #1976d2; font-weight: bold; }
+        
+        /* 하단 인원수 행 - 음영 제거 */
+        .footer-row td { background-color: #f8f9fa !important; font-weight: bold; color: #333 !important; }
     </style>
 </head>
 <body>
@@ -39,36 +38,38 @@
     <div class="header">
         <h1>🗓️ 2026 근태 관리</h1>
         <div class="tabs">
-            <button id="btn-manager" class="tab-btn active" onclick="switchTab('manager')">지점장</button>
-            <button id="btn-staff" class="tab-btn" onclick="switchTab('staff')">직원</button>
+            <button id="btn-manager" class="active" onclick="switchTab('manager')">지점장</button>
+            <button id="btn-staff" onclick="switchTab('staff')">직원</button>
         </div>
     </div>
+
+    <div id="month-picker" class="month-picker"></div>
 
     <div class="table-container">
         <table>
             <thead>
                 <tr>
-                    <th rowspan="2">지점</th>
-                    <th rowspan="2">성명</th>
-                    <th rowspan="2">연차<br>부여</th>
-                    <th rowspan="2">전년<br>미사용</th>
-                    <th rowspan="2">남은<br>연차</th>
-                    <th rowspan="2">소진율</th>
-                    <th colspan="31" id="month-title">근태 현황</th>
+                    <th rowspan="3" style="width:80px;">지점</th>
+                    <th rowspan="3" style="width:80px;">성명</th>
+                    <th rowspan="3" style="width:45px;">연차<br>부여</th>
+                    <th rowspan="3" style="width:45px;">전년<br>미사용</th>
+                    <th rowspan="3" style="width:45px;">남은<br>연차</th>
+                    <th rowspan="3" style="width:55px;">소진율</th>
+                    <th colspan="31" id="month-title" style="height:30px;">1월 근태 현황</th>
                 </tr>
-                <tr id="date-header">
+                <tr id="row-dates">
+                    </tr>
+                <tr id="row-weeks">
                     </tr>
             </thead>
-            <tbody id="attendance-body">
-                <tr><td colspan="37" style="text-align:center; padding:20px;">데이터 동기화 중...</td></tr>
-            </tbody>
+            <tbody id="attendance-body"></tbody>
             <tfoot>
-                <tr class="footer-row" id="holiday-row">
-                    <td colspan="6" class="footer-label">휴가 인원</td>
-                    </tr>
-                <tr class="footer-row" id="work-row">
-                    <td colspan="6" class="footer-label">근무 인원</td>
-                    </tr>
+                <tr class="footer-row" id="row-vacation">
+                    <td colspan="6" style="text-align:right; padding-right:10px;">휴가 인원</td>
+                </tr>
+                <tr class="footer-row" id="row-working">
+                    <td colspan="6" style="text-align:right; padding-right:10px;">근무 인원</td>
+                </tr>
             </tfoot>
         </table>
     </div>
