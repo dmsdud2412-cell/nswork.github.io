@@ -6,7 +6,7 @@ const managerList = [
     { branch: "청주지점", name: "윤남수", required: 17, unused: 17 },
     { branch: "평택지점", name: "류희복", required: 17, unused: 17 },
     { branch: "홍성지점", name: "한수하", required: 17, unused: 17 },
-    { branch: "충청영업기획", name: "나병운", required: 17, unused: 17 }
+    { branch: "충청영업기획", name: "나병윤", required: 17, unused: 17 }
 ];
 
 // 2. 직원 명단 (임의 데이터 50명 생성)
@@ -105,3 +105,4 @@ function updateCounts() {
         workFooter[i].innerText = rows.length - hCount;
     }
 }
+
