@@ -1,6 +1,6 @@
 const GAN_URL = "https://script.google.com/macros/s/AKfycby42R57TUGVePyKRxfsFqeLuinCy0rxIVZudX2-Z1tERUpYCxJWw50EU0ZsqIrVGlWy/exec";
 
-// URL 지점 필터
+// URL 지점 필터 처리
 const urlParams = new URLSearchParams(window.location.search);
 const myBranch = urlParams.get('branch');
 
@@ -11,20 +11,19 @@ let lastFetchedAttendance = [];
 
 window.onload = () => { renderMonthPicker(); loadAllData(); addExcelButton(); };
 
-// 엑셀 다운로드 버튼 생성 (디자인 보존을 위해 월 선택 바 옆에 배치)
+// 엑셀 저장 버튼 동적 생성
 function addExcelButton() {
     if (document.getElementById('btn-excel')) return;
     const container = document.getElementById('month-picker');
     const btn = document.createElement('button');
     btn.id = 'btn-excel';
     btn.innerText = '엑셀 저장 📥';
-    btn.className = 'month-btn';
-    btn.style.cssText = "margin-left:20px; background:#2e7d32; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:4px;";
+    btn.style.cssText = "margin-left:20px; background:#2e7d32; color:white; border:none; padding:6px 12px; cursor:pointer; border-radius:4px; font-size:12px; font-weight:bold;";
     btn.onclick = downloadExcel;
     container.appendChild(btn);
 }
 
-// 엑셀 다운로드 실행 함수
+// 엑셀 파일 다운로드 실행
 function downloadExcel() {
     const table = document.getElementById('attendance-table');
     const branchInfo = myBranch ? myBranch : "전체지점";
@@ -37,6 +36,7 @@ function downloadExcel() {
     link.click();
 }
 
+// 2026년 공휴일 설정
 function getHolidays(month) {
     const data = { 
         1: { 1: "신정" }, 
@@ -52,15 +52,19 @@ function getHolidays(month) {
     return data[month] || {};
 }
 
+// 명단 및 근태 데이터 로드
 async function loadAllData() {
     try {
         const response = await fetch(GAN_URL);
         const res = await response.json();
         masterData.manager = []; masterData.staff = [];
+        
         if(res.config) {
             res.config.slice(1).forEach(row => {
                 const bName = row[1] || "";
+                // [필터 로직] 지점 파라미터가 있을 때만 필터링, 없으면 전체 노출
                 if (myBranch && bName !== myBranch) return; 
+
                 const p = { branch: bName, name: row[2] || "", req: row[3] || 0, unused: row[4] || 0 };
                 if (row[0] === 'manager') masterData.manager.push(p);
                 else masterData.staff.push(p);
@@ -71,6 +75,7 @@ async function loadAllData() {
     } catch (e) { console.error("데이터 로드 실패"); }
 }
 
+// 테이블 렌더링 (디자인 유지)
 function renderTable(attendance) {
     const dateRow = document.getElementById('row-dates');
     const weekRow = document.getElementById('row-weeks');
@@ -93,6 +98,7 @@ function renderTable(attendance) {
         const thW = document.createElement('th');
         const thH = document.createElement('th');
         [thD, thW, thH].forEach(el => el.className = 'col-day');
+        
         if (isExist) {
             const dayIdx = dateObj.getDay();
             const hName = holidayInfo[d] || "";
@@ -109,6 +115,7 @@ function renderTable(attendance) {
         const tr = document.createElement('tr');
         tr.setAttribute('data-person', p.name);
         tr.innerHTML = `<td>${p.branch}</td><td>${p.name}</td><td>${p.req}</td><td>${p.unused}</td><td id="rem-${p.name}">${p.unused}</td><td id="rate-${p.name}">0%</td>`;
+        
         for (let i = 1; i <= 31; i++) {
             const dateObj = new Date(2026, currentMonth - 1, i);
             const isExist = dateObj.getMonth() === currentMonth - 1;
@@ -130,14 +137,16 @@ function renderTable(attendance) {
     updateCounts();
 }
 
+// 색상 규정 적용
 function applyStatusColor(cell, status) {
     cell.style.color = ""; cell.style.fontWeight = "bold";
-    if(status === '연차' || status === '휴가') cell.style.color = "#d32f2f";
-    else if(status === '출장') cell.style.color = "#000000";
-    else if(status.includes('반차')) cell.style.color = "#ef6c00";
-    else if(status === '반반차') cell.style.color = "#4caf50";
+    if(status === '연차' || status === '휴가') cell.style.color = "#d32f2f"; // 빨강
+    else if(status === '출장') cell.style.color = "#000000"; // 검정
+    else if(status.includes('반차')) cell.style.color = "#ef6c00"; // 주황
+    else if(status === '반반차') cell.style.color = "#4caf50"; // 초록
 }
 
+// 드롭다운 및 저장 기능
 function showDropdown(cell) {
     if (cell.querySelector('select')) return;
     const currentStatus = cell.innerText;
@@ -159,7 +168,7 @@ function showDropdown(cell) {
         cell.innerText = newStatus;
         applyStatusColor(cell, newStatus);
         updateCounts(); 
-        // [저장 기능]
+        // [저장 전송]
         fetch(GAN_URL, {
             method: "POST", mode: "no-cors",
             body: JSON.stringify({ month: parseInt(currentMonth), type: currentType, name: name, day: parseInt(day), status: newStatus })
@@ -168,14 +177,69 @@ function showDropdown(cell) {
     select.onblur = function() { if (cell.contains(this)) cell.innerText = this.value; };
 }
 
+// 수식 계산 (반반차 0.25) 및 하단 인원 카운트 (항목 있으면 1)
 function updateCounts() {
     const rows = document.querySelectorAll('#attendance-body tr');
     const totalPeople = rows.length;
     const dailyVacationCount = Array(32).fill(0);
+
     rows.forEach(row => {
         const name = row.getAttribute('data-person');
         const cells = row.querySelectorAll('.at-cell');
         let used = 0;
+        
         cells.forEach(c => {
             const txt = c.innerText;
-            const day = parseInt(
+            const day = parseInt(c.getAttribute('data-day'));
+            if(!txt) return;
+
+            // 개인 연차 차감 수식
+            if (txt === '연차') used += 1;
+            else if (txt === '반반차') used += 0.25;
+            else if (txt.includes('반차')) used += 0.5;
+
+            // 하단 휴가인원 합계 (무엇이든 입력되면 1명)
+            if (['연차', '오전반차', '오후반차', '반반차', '휴가', '출장'].includes(txt)) {
+                dailyVacationCount[day] += 1;
+            }
+        });
+        
+        const unused = parseFloat(row.cells[3].innerText) || 0;
+        const rem = unused - used;
+        const remEl = document.getElementById(`rem-${name}`);
+        if(remEl) remEl.innerText = Number.isInteger(rem) ? rem : rem.toFixed(2);
+        
+        const req = parseFloat(row.cells[2].innerText) || 0;
+        const rateEl = document.getElementById(`rate-${name}`);
+        if(rateEl) rateEl.innerText = req > 0 ? Math.floor((req - rem) / req * 100) + '%' : '0%';
+    });
+
+    for (let d = 1; d <= 31; d++) {
+        const vCell = document.getElementById(`vac-count-${d}`);
+        const wCell = document.getElementById(`work-count-${d}`);
+        if (vCell && wCell) {
+            vCell.innerText = dailyVacationCount[d];
+            wCell.innerText = totalPeople - dailyVacationCount[d];
+        }
+    }
+}
+
+function renderMonthPicker() {
+    const container = document.getElementById('month-picker');
+    container.innerHTML = '';
+    for (let m = 1; m <= 12; m++) {
+        const btn = document.createElement('button');
+        btn.innerText = m + '월';
+        btn.className = `month-btn ${m === currentMonth ? 'active' : ''}`;
+        if(m === currentMonth) { btn.style.background = "#d32f2f"; btn.style.color = "white"; }
+        btn.onclick = () => { currentMonth = m; renderMonthPicker(); renderTable(lastFetchedAttendance); };
+        container.appendChild(btn);
+    }
+}
+
+function switchTab(type) {
+    currentType = type;
+    document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+    document.getElementById(`btn-${type}`).classList.add('active');
+    renderTable(lastFetchedAttendance);
+}
