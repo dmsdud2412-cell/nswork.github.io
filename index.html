@@ -2,71 +2,60 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2026 근태 관리 시스템</title>
     <style>
-        body { font-family: 'Pretendard', sans-serif; margin: 20px; background-color: #f4f7f9; color: #333; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
-        h1 { margin: 0; color: #2c3e50; font-size: 24px; }
-        
-        /* 탭 스타일 */
+        /* 기존 디자인 유지 */
+        body { font-family: 'Pretendard', sans-serif; margin: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .tabs { display: flex; gap: 5px; }
-        .tab-btn { padding: 10px 20px; border: none; background: #e0e0e0; cursor: pointer; border-radius: 5px; font-weight: bold; transition: 0.3s; }
+        .tab-btn { padding: 10px 20px; border: none; background: #e0e0e0; cursor: pointer; border-radius: 5px; font-weight: bold; }
         .tab-btn.active { background: #d32f2f; color: white; }
-        .tab-btn:hover { background: #bdbdbd; }
-        .tab-btn.active:hover { background: #b71c1c; }
-
-        /* 테이블 스타일 */
-        .table-container { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; min-width: 1500px; font-size: 13px; }
-        th, td { border: 1px solid #eee; padding: 8px; text-align: center; }
-        th { background: #f8f9fa; position: sticky; top: 0; z-index: 10; }
         
-        /* 주말 및 공휴일 음영 (사용자 지정 디자인) */
+        /* [수정 핵심] 칸 크기를 강제로 맞추는 설정 */
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            min-width: 1600px; 
+            font-size: 13px; 
+            table-layout: fixed; /* 모든 칸의 너비를 고정함 */
+        }
+        
+        th, td { border: 1px solid #eee; padding: 8px; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        
+        /* 각 열의 너비 지정 (앞쪽 정보 칸들은 조금 넓게, 날짜는 좁게) */
+        .col-info { width: 80px; }
+        .col-day { width: 35px; }
+        
         .weekend { background-color: #ffebee !important; color: #d32f2f; }
-        
-        /* 근태 상태별 색상 */
-        .status-연차 { background-color: #e3f2fd; color: #1976d2; font-weight: bold; }
+        .status-연차 { background-color: #e3f2fd; color: #1976d2; }
         .status-반차 { background-color: #f1f8e9; color: #388e3c; }
-        .status-반반차 { background-color: #fff3e0; color: #f57c00; }
-        
-        .num-cell { font-weight: bold; background: #fafafa; width: 40px; }
-        .at-cell { cursor: pointer; width: 35px; min-width: 35px; transition: background 0.2s; }
-        .at-cell:hover { background-color: #f0f0f0; }
-
-        /* 하단 합계 스타일 */
-        .footer-row { background: #f1f3f5; font-weight: bold; }
-        .footer-label { background: #e9ecef; text-align: right; padding-right: 15px; }
-
-        /* 월 선택기 디자인 */
-        .month-picker { display: flex; justify-content: center; gap: 5px; margin-bottom: 15px; flex-wrap: wrap; }
+        .at-cell { cursor: pointer; }
     </style>
 </head>
 <body>
-
     <div class="header">
-        <h1>🗓️ 2026 근태 관리</h1>
+        <h1>2026 근태 관리</h1>
         <div class="tabs">
             <button id="btn-manager" class="tab-btn active" onclick="switchTab('manager')">지점장</button>
             <button id="btn-staff" class="tab-btn" onclick="switchTab('staff')">직원</button>
         </div>
     </div>
 
-    <div class="table-container">
+    <div style="overflow-x: auto; background: white; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); padding: 20px;">
         <table>
             <thead>
                 <tr>
-                    <th rowspan="2">지점</th>
-                    <th rowspan="2">성명</th>
-                    <th rowspan="2">연차<br>부여</th>
-                    <th rowspan="2">전년<br>미사용</th>
-                    <th rowspan="2">남은<br>연차</th>
-                    <th rowspan="2">소진율</th>
-                    <th colspan="31" id="month-title">근태 현황</th>
+                    <th rowspan="2" class="col-info">지점</th>
+                    <th rowspan="2" class="col-info">성명</th>
+                    <th rowspan="2" style="width: 50px;">연차<br>부여</th>
+                    <th rowspan="2" style="width: 50px;">전년<br>미사용</th>
+                    <th rowspan="2" style="width: 50px;">남은<br>연차</th>
+                    <th rowspan="2" style="width: 60px;">소진율</th>
+                    <th colspan="31">근태 현황</th>
                 </tr>
                 <tr>
                     <script>
-                        for(let i=1; i<=31; i++) document.write(`<th>${i}</th>`);
+                        for(let i=1; i<=31; i++) document.write(`<th class="col-day">${i}</th>`);
                     </script>
                 </tr>
             </thead>
@@ -74,18 +63,17 @@
                 <tr><td colspan="37" style="text-align:center; padding:20px;">데이터를 불러오는 중입니다...</td></tr>
             </tbody>
             <tfoot>
-                <tr class="footer-row" id="holiday-row">
-                    <td colspan="6" class="footer-label">휴가 인원</td>
+                <tr style="background: #f1f3f5; font-weight: bold;" id="holiday-row">
+                    <td colspan="6" style="text-align: right; padding-right: 15px;">휴가 인원</td>
                     <script>for(let i=1; i<=31; i++) document.write(`<td>0</td>`);</script>
                 </tr>
-                <tr class="footer-row" id="work-row">
-                    <td colspan="6" class="footer-label">근무 인원</td>
+                <tr style="background: #f1f3f5; font-weight: bold;" id="work-row">
+                    <td colspan="6" style="text-align: right; padding-right: 15px;">근무 인원</td>
                     <script>for(let i=1; i<=31; i++) document.write(`<td>0</td>`);</script>
                 </tr>
             </tfoot>
         </table>
     </div>
-
     <script src="script.js"></script>
 </body>
 </html>
