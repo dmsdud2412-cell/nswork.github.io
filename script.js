@@ -67,16 +67,12 @@ function renderTable(attendance) {
             const dayIdx = dateObj.getDay();
             const hName = holidayInfo[d] || "";
             const isRedDay = (dayIdx === 0 || dayIdx === 6 || hName !== "");
-            thD.innerText = d; 
-            thW.innerText = weekDays[dayIdx];
-            thH.innerText = hName;
+            thD.innerText = d; thW.innerText = weekDays[dayIdx]; thH.innerText = hName;
             if(isRedDay) { [thD, thW, thH].forEach(el => el.classList.add('txt-red')); }
         }
         dateRow.appendChild(thD);
         weekRow.appendChild(thW);
         holidayRow.appendChild(thH);
-        
-        // 하단 인원 셀 (ID 부여하여 나중에 계산 결과 주입)
         vRow.insertCell(-1).id = `vac-count-${d}`;
         wRow.insertCell(-1).id = `work-count-${d}`;
     }
@@ -100,7 +96,6 @@ function renderTable(attendance) {
                 const status = (match && match[4]) ? match[4] : "";
                 td.innerText = status;
                 if(status) applyStatusColor(td, status);
-                
                 td.setAttribute('data-day', i);
                 td.onclick = function() { showDropdown(this); };
             }
@@ -111,13 +106,20 @@ function renderTable(attendance) {
     updateCounts();
 }
 
+// 글자 색상 적용 (수정 요청 반영)
 function applyStatusColor(cell, status) {
-    cell.classList.remove('status-연차');
-    cell.style.color = ""; cell.style.fontWeight = "";
-    if(status === '연차') { cell.classList.add('status-연차'); cell.style.color = "#1976d2"; cell.style.fontWeight = "bold"; }
-    else if(status.includes('반차')) { cell.style.color = "#ef6c00"; cell.style.fontWeight = "bold"; }
-    else if(status === '반반차') { cell.style.color = "#4caf50"; cell.style.fontWeight = "bold"; }
-    else if(status === '출장' || status === '휴가') { cell.style.color = "#9c27b0"; cell.style.fontWeight = "bold"; }
+    cell.style.color = ""; 
+    cell.style.fontWeight = "bold";
+
+    if(status === '연차' || status === '휴가') {
+        cell.style.color = "#d32f2f"; // 요청: 빨간색
+    } else if(status === '출장') {
+        cell.style.color = "#000000"; // 요청: 검은색
+    } else if(status.includes('반차')) {
+        cell.style.color = "#ef6c00"; // 주황색 유지
+    } else if(status === '반반차') {
+        cell.style.color = "#4caf50"; // 초록색 유지
+    }
 }
 
 function showDropdown(cell) {
@@ -151,7 +153,7 @@ function showDropdown(cell) {
 function updateCounts() {
     const rows = document.querySelectorAll('#attendance-body tr');
     const totalPeople = rows.length;
-    const dailyVacation = Array(32).fill(0);
+    const dailyVacationCount = Array(32).fill(0);
 
     rows.forEach(row => {
         const name = row.getAttribute('data-person');
@@ -161,17 +163,22 @@ function updateCounts() {
         cells.forEach(c => {
             const txt = c.innerText;
             const day = parseInt(c.getAttribute('data-day'));
-            // 수식 반영: 연차 1, 반차 0.5, 반반차 0.25
-            if (txt === '연차') { usedForPerson += 1; dailyVacation[day] += 1; }
-            else if (txt.includes('반차')) { usedForPerson += 0.5; dailyVacation[day] += 0.5; }
-            else if (txt === '반반차') { usedForPerson += 0.25; dailyVacation[day] += 0.25; }
-            else if (txt === '휴가') { dailyVacation[day] += 1; }
+            if(!txt) return;
+
+            if (txt === '연차') usedForPerson += 1;
+            else if (txt === '반반차') usedForPerson += 0.25;
+            else if (txt === '오전반차' || txt === '오후반차') usedForPerson += 0.5;
+
+            // 하단 인원 합계: 항목 있으면 무조건 1명
+            if (['연차', '오전반차', '오후반차', '반반차', '휴가', '출장'].includes(txt)) {
+                dailyVacationCount[day] += 1;
+            }
         });
         
         const unused = parseFloat(row.cells[3].innerText) || 0;
         const rem = unused - usedForPerson;
         const remEl = document.getElementById(`rem-${name}`);
-        if(remEl) remEl.innerText = rem.toFixed(2).replace(/\.00$/, '');
+        if(remEl) remEl.innerText = Number.isInteger(rem) ? rem : rem.toFixed(2);
         
         const req = parseFloat(row.cells[2].innerText) || 0;
         const rate = req > 0 ? ((req - rem) / req * 100) : 0;
@@ -179,14 +186,13 @@ function updateCounts() {
         if(rateEl) rateEl.innerText = Math.floor(rate) + '%';
     });
 
-    // 하단 휴가/근무 인원 수치 주입
     for (let d = 1; d <= 31; d++) {
         const vacCell = document.getElementById(`vac-count-${d}`);
         const workCell = document.getElementById(`work-count-${d}`);
         if (vacCell && workCell) {
-            const vacNum = dailyVacation[d];
-            vacCell.innerText = vacNum > 0 ? vacNum : '0';
-            workCell.innerText = totalPeople - Math.ceil(vacNum); // 근무인원은 휴가자(반차포함 올림) 제외 계산
+            const vCount = dailyVacationCount[d];
+            vacCell.innerText = vCount > 0 ? vCount : '0';
+            workCell.innerText = totalPeople - vCount;
         }
     }
 }
