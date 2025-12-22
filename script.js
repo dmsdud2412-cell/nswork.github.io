@@ -8,17 +8,13 @@ let currentMonth = 1;
 let masterData = { manager: [], staff: [] };
 let lastFetchedAttendance = [];
 
-window.onload = () => { 
-    renderMonthPicker(); 
-    loadAllData(); 
-};
+window.onload = () => { renderMonthPicker(); loadAllData(); };
 
-// 엑셀 저장 버튼 (디자인 유지)
+// [엑셀 버튼] 기존 디자인 보존하며 월 선택바 옆에 유지
 function addExcelButton() {
     if (document.getElementById('btn-excel')) return;
     const container = document.getElementById('month-picker');
     if (!container) return;
-
     const btn = document.createElement('button');
     btn.id = 'btn-excel';
     btn.innerText = '엑셀 저장 📥';
@@ -27,10 +23,9 @@ function addExcelButton() {
     container.appendChild(btn);
 }
 
-// 엑셀 다운로드 (테이블 자동 감지)
 function downloadExcel() {
     const table = document.querySelector('table'); 
-    if (!table) { alert("화면에 출력된 표를 찾을 수 없습니다."); return; }
+    if (!table) return;
     const branchInfo = myBranch ? myBranch : "전체지점";
     const filename = `2026년_${currentMonth}월_근태현황_${branchInfo}.xls`;
     let html = table.outerHTML;
@@ -47,15 +42,15 @@ function downloadExcel() {
 
 function getHolidays(month) {
     const data = { 
-        1: { 1: "신정" }, 2: { 16: "설날", 17: "설날", 18: "설날" }, 
-        3: { 1: "삼일절", 2: "대체공휴일" }, 5: { 5: "어린이날", 24: "석가탄신일", 25: "대체공휴일" },
-        6: { 6: "현충일" }, 8: { 15: "광복절", 17: "대체공휴일" },
+        1: { 1: "신정" }, 2: { 16: "설날", 17: "설날", 18: "설날" }, 3: { 1: "삼일절", 2: "대체공휴일" }, 
+        5: { 5: "어린이날", 24: "석가탄신일", 25: "대체공휴일" }, 6: { 6: "현충일" }, 8: { 15: "광복절", 17: "대체공휴일" },
         9: { 24: "추석", 25: "추석", 26: "추석", 28: "대체공휴일" }, 10: { 3: "개천절", 5: "대체공휴일", 9: "한글날" },
         12: { 25: "성탄절" }
     };
     return data[month] || {};
 }
 
+// [명단 로드] 사라진 명단을 다시 불러오는 핵심 로직
 async function loadAllData() {
     try {
         const response = await fetch(GAN_URL);
@@ -76,16 +71,13 @@ async function loadAllData() {
 }
 
 function renderTable(attendance) {
-    // [보강된 제목 업데이트 로직]
-    // 1. 'table-title' 아이디를 가진 요소 찾기
-    // 2. 없으면 화면상의 h2 태그 찾기
-    // 3. 그것도 없으면 '근태 현황' 텍스트를 포함한 모든 태그 중 첫 번째 찾기
-    const titleEl = document.getElementById('table-title') || 
-                    document.querySelector('h2') || 
-                    Array.from(document.querySelectorAll('h1, h2, h3, div')).find(el => el.innerText.includes('근태 현황'));
-    
-    if (titleEl) {
-        titleEl.innerText = `${currentMonth}월 근태 현황`;
+    // [제목 변경] 화면 전체를 건드리지 않고 '근태 현황'이 포함된 h2만 정밀 타격
+    const h2Tags = document.getElementsByTagName('h2');
+    for (let h2 of h2Tags) {
+        if (h2.innerText.includes('근태 현황')) {
+            h2.innerText = `${currentMonth}월 근태 현황`;
+            break; 
+        }
     }
 
     const tbody = document.getElementById('attendance-body');
