@@ -7,60 +7,68 @@ let lastFetchedAttendance = [];
 
 window.onload = () => { renderMonthPicker(); loadAllData(); };
 
-// 2026년 공휴일 명칭
 function getHolidays(month) {
     const data = { 
-        1: { 1: "신정" }, 
-        2: { 16: "설날", 17: "설날", 18: "설날" }, 
-        3: { 1: "삼일절", 2: "대체휴무" },
-        5: { 5: "어린이날", 24: "석가탄신일" },
-        10: { 3: "개천절", 5: "추석", 6: "추석", 7: "추석", 8: "대체휴무", 9: "한글날" },
-        12: { 25: "성탄절" }
+        1: { 1: "신정" }, 2: { 16: "설날", 17: "설날", 18: "설날" }, 3: { 1: "삼일절" },
+        5: { 5: "어린이날", 24: "석가탄신일" }, 6: { 6: "현충일" }, 8: { 15: "광복절" },
+        10: { 3: "개천절", 9: "한글날" }, 12: { 25: "성탄절" }
     };
     return data[month] || {};
+}
+
+async function loadAllData() {
+    try {
+        const response = await fetch(GAN_URL);
+        const res = await response.json();
+        masterData.manager = []; masterData.staff = [];
+        if(res.config) {
+            res.config.slice(1).forEach(row => {
+                const p = { branch: row[1] || "", name: row[2] || "", req: row[3] || 0, unused: row[4] || 0 };
+                if (row[0] === 'manager') masterData.manager.push(p);
+                else masterData.staff.push(p);
+            });
+        }
+        lastFetchedAttendance = res.attendance || [];
+        renderTable(lastFetchedAttendance);
+    } catch (e) { console.error("데이터 로드 실패"); }
 }
 
 function renderTable(attendance) {
     const dateRow = document.getElementById('row-dates');
     const weekRow = document.getElementById('row-weeks');
+    const holidayRow = document.getElementById('row-holidays');
     const tbody = document.getElementById('attendance-body');
     const vRow = document.getElementById('row-vacation');
     const wRow = document.getElementById('row-working');
 
-    dateRow.innerHTML = ''; weekRow.innerHTML = ''; tbody.innerHTML = '';
+    dateRow.innerHTML = ''; weekRow.innerHTML = ''; holidayRow.innerHTML = ''; tbody.innerHTML = '';
     while(vRow.cells.length > 1) vRow.deleteCell(1);
     while(wRow.cells.length > 1) wRow.deleteCell(1);
 
     const holidayInfo = getHolidays(currentMonth);
     const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
 
+    // 헤더 3단 생성
     for (let d = 1; d <= 31; d++) {
         const dateObj = new Date(2026, currentMonth - 1, d);
         const isExist = dateObj.getMonth() === currentMonth - 1;
         
         const thD = document.createElement('th');
         const thW = document.createElement('th');
-        thD.className = 'col-day';
-        thW.className = 'col-day';
+        const thH = document.createElement('th');
+        [thD, thW, thH].forEach(el => el.className = 'col-day');
         
         if (isExist) {
             const dayIdx = dateObj.getDay();
             const isRedDay = (dayIdx === 0 || dayIdx === 6 || holidayInfo[d]);
-            
-            // 1단: 숫자
-            thD.innerText = d;
-            // 2단: 요일 / 3단: 공휴일명 (수직 배치)
-            thW.innerHTML = `${weekDays[dayIdx]}<br><span style="font-size:9px; font-weight:normal;">${holidayInfo[d] || ''}</span>`;
-            
-            if(isRedDay) {
-                thD.classList.add('txt-red');
-                thW.classList.add('txt-red');
-            }
+            thD.innerText = d; 
+            thW.innerText = weekDays[dayIdx];
+            thH.innerText = holidayInfo[d] || "";
+            if(isRedDay) { [thD, thW, thH].forEach(el => el.classList.add('txt-red')); }
         }
         dateRow.appendChild(thD);
         weekRow.appendChild(thW);
-        
-        // 하단 인원 행 칸 생성 (음영 없음)
+        holidayRow.appendChild(thH);
         vRow.insertCell(-1).innerText = '0';
         wRow.insertCell(-1).innerText = '0';
     }
@@ -68,7 +76,8 @@ function renderTable(attendance) {
     const list = (currentType === 'manager') ? masterData.manager : masterData.staff;
     list.forEach(p => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${p.branch}</td><td>${p.name}</td><td>${p.req}</td><td>${p.unused}</td><td>${p.unused}</td><td>0%</td>`;
+        tr.setAttribute('data-person', p.name);
+        tr.innerHTML = `<td>${p.branch}</td><td>${p.name}</td><td>${p.req}</td><td>${p.unused}</td><td id="rem-${p.name}">${p.unused}</td><td id="rate-${p.name}">0%</td>`;
         
         for (let i = 1; i <= 31; i++) {
             const dateObj = new Date(2026, currentMonth - 1, i);
@@ -80,18 +89,71 @@ function renderTable(attendance) {
                 const dayIdx = dateObj.getDay();
                 if (dayIdx === 0 || dayIdx === 6 || holidayInfo[i]) td.classList.add('bg-pink');
                 const match = attendance.find(r => r[0] == currentMonth && r[1] == currentType && r[2] == p.name && r[3] == i);
-                if(match) {
-                    td.innerText = match[4];
-                    if(match[4] === '연차') td.classList.add('status-연차');
-                }
+                td.innerText = (match && match[4]) ? match[4] : "";
+                if(td.innerText === '연차') td.classList.add('status-연차');
+                
+                td.setAttribute('data-day', i);
+                // 클릭 이벤트 연결 (여기서 먹통 문제 해결)
+                td.addEventListener('click', function() { showDropdown(this); });
             }
             tr.appendChild(td);
         }
         tbody.appendChild(tr);
     });
+    updateCounts();
 }
 
-// 월 버튼 및 기타 함수
+function showDropdown(cell) {
+    if (cell.querySelector('select')) return;
+    const currentStatus = cell.innerText;
+    const statuses = ['', '연차', '오전반차', '오후반차', '반반차', '휴가', '출장'];
+    const select = document.createElement('select');
+    select.style.cssText = "width:100%; height:100%; border:none; background:transparent; font-size:11px; text-align:center; appearance:none;";
+    
+    statuses.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s; opt.innerText = s === '' ? '-' : s;
+        if(s === currentStatus) opt.selected = true;
+        select.appendChild(opt);
+    });
+
+    cell.innerText = ''; cell.appendChild(select);
+    select.focus();
+
+    select.onchange = async function() {
+        const newStatus = this.value;
+        const day = cell.getAttribute('data-day');
+        const name = cell.parentElement.getAttribute('data-person');
+        cell.innerText = newStatus;
+        cell.classList.toggle('status-연차', newStatus === '연차');
+        updateCounts(); 
+        await fetch(GAN_URL, { method: "POST", body: JSON.stringify({ month: currentMonth, type: currentType, name: name, day: day, status: newStatus }) });
+    };
+    select.onblur = function() { if (cell.contains(this)) cell.innerText = this.value; };
+}
+
+function updateCounts() {
+    const rows = document.querySelectorAll('#attendance-body tr');
+    rows.forEach(row => {
+        const name = row.getAttribute('data-person');
+        const cells = row.querySelectorAll('.at-cell');
+        let used = 0;
+        cells.forEach(c => {
+            const txt = c.innerText;
+            if (txt === '연차') used += 1;
+            else if (txt.includes('반차')) used += 0.5;
+        });
+        const unused = parseFloat(row.cells[3].innerText) || 0;
+        const req = parseFloat(row.cells[2].innerText) || 0;
+        const rem = unused - used;
+        const remEl = document.getElementById(`rem-${name}`);
+        if(remEl) remEl.innerText = rem;
+        const rate = req > 0 ? ((req - rem) / req * 100) : 0;
+        const rateEl = document.getElementById(`rate-${name}`);
+        if(rateEl) rateEl.innerText = Math.floor(rate) + '%';
+    });
+}
+
 function renderMonthPicker() {
     const container = document.getElementById('month-picker');
     container.innerHTML = '';
@@ -105,19 +167,7 @@ function renderMonthPicker() {
         container.appendChild(btn);
     }
 }
-async function loadAllData() {
-    try {
-        const res = await (await fetch(GAN_URL)).json();
-        masterData.manager = []; masterData.staff = [];
-        res.config.slice(1).forEach(row => {
-            const p = { branch: row[1], name: row[2], req: row[3], unused: row[4] };
-            if (row[0] === 'manager') masterData.manager.push(p);
-            else masterData.staff.push(p);
-        });
-        lastFetchedAttendance = res.attendance;
-        renderTable(lastFetchedAttendance);
-    } catch (e) { console.error("로드 실패"); }
-}
+
 function switchTab(type) {
     currentType = type;
     document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
