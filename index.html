@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>1월 지점장 근태(휴무) 현황</title>
+    <title>1월 지점장 근태 현황</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -18,11 +18,9 @@
                     <th rowspan="2" colspan="4" class="usage-header">1월 연차 사용 현황</th>
                     <th class="day-header weekend">1</th><th class="day-header">2</th><th class="day-header weekend">3</th><th class="day-header weekend">4</th><th class="day-header">5</th><th class="day-header">6</th><th class="day-header">7</th><th class="day-header">8</th><th class="day-header">9</th><th class="day-header weekend">10</th><th class="day-header weekend">11</th><th class="day-header">12</th><th class="day-header">13</th><th class="day-header">14</th><th class="day-header">15</th><th class="day-header">16</th><th class="day-header weekend">17</th><th class="day-header weekend">18</th><th class="day-header">19</th><th class="day-header">20</th><th class="day-header">21</th><th class="day-header">22</th><th class="day-header">23</th><th class="day-header weekend">24</th><th class="day-header weekend">25</th><th class="day-header">26</th><th class="day-header">27</th><th class="day-header">28</th><th class="day-header">29</th><th class="day-header">30</th><th class="day-header weekend">31</th>
                 </tr>
-
                 <tr>
                     <th class="day-header weekend">목</th><th class="day-header">금</th><th class="day-header weekend">토</th><th class="day-header weekend">일</th><th class="day-header">월</th><th class="day-header">화</th><th class="day-header">수</th><th class="day-header">목</th><th class="day-header">금</th><th class="day-header weekend">토</th><th class="day-header weekend">일</th><th class="day-header">월</th><th class="day-header">화</th><th class="day-header">수</th><th class="day-header">목</th><th class="day-header">금</th><th class="day-header weekend">토</th><th class="day-header weekend">일</th><th class="day-header">월</th><th class="day-header">화</th><th class="day-header">수</th><th class="day-header">목</th><th class="day-header">금</th><th class="day-header weekend">토</th><th class="day-header weekend">일</th><th class="day-header">월</th><th class="day-header">화</th><th class="day-header">수</th><th class="day-header">목</th><th class="day-header">금</th><th class="day-header weekend">토</th>
                 </tr>
-
                 <tr>
                     <th class="usage-cell">필수</th>
                     <th class="usage-cell">미사용</th>
@@ -33,11 +31,11 @@
                 </tr>
             </thead>
             <tbody>
-                <tr data-person="김진영" data-total-annual="12">
+                <tr data-person="김진영">
                     <td rowspan="2">대전동지점</td>
                     <td>김진영</td>
                     <td data-annual="required">3</td>
-                    <td data-annual="used-after-nov">0</td>
+                    <td data-annual="used">0</td>
                     <td data-annual="remaining">12</td>
                     <td data-annual="rate">100%</td>
                     <td colspan="31" class="daily-attendance-row"></td>
@@ -46,24 +44,15 @@
                     <td colspan="4" class="sub-row"></td>
                     <td colspan="31" class="sub-row"></td>
                 </tr>
-
-                <tr data-person="이승심" data-total-annual="12">
-                    <td colspan="2">대전서지점 이승심</td>
-                    <td data-annual="required">1</td>
-                    <td data-annual="used-after-nov">0</td>
-                    <td data-annual="remaining">11</td>
-                    <td data-annual="rate">91%</td>
-                    <td colspan="31" class="daily-attendance-row"></td>
-                </tr>
             </tbody>
             <tfoot>
                 <tr>
                     <td colspan="6" class="footer-label">휴무 인원</td>
-                    <td colspan="31" id="holiday-count-row"></td>
+                    <td id="holiday-count-row" class="summary-container"></td>
                 </tr>
                 <tr>
                     <td colspan="6" class="footer-label">근무 인원</td>
-                    <td colspan="31" id="workforce-count-row"></td>
+                    <td id="workforce-count-row" class="summary-container"></td>
                 </tr>
             </tfoot>
         </table>
