@@ -1,30 +1,21 @@
-* { box-sizing: border-box; }
-body { font-family: sans-serif; background: #f5f5f5; padding: 20px; }
-.container { background: white; padding: 20px; overflow-x: auto; }
-h1 { text-align: center; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Malgun Gothic', sans-serif; padding: 20px; background: #f0f2f5; }
+.container { background: white; padding: 20px; border-radius: 8px; overflow-x: auto; }
 
 table { 
     width: 100%; 
     border-collapse: collapse; 
-    table-layout: fixed; /* 모든 칸의 너비를 고정함 */
-    min-width: 1400px; 
+    table-layout: fixed; /* 모든 칸의 너비를 고정하여 줄을 맞춤 */
+    min-width: 1500px; 
 }
 
-th, td { 
-    border: 1px solid #999; 
-    text-align: center; 
-    font-size: 12px; 
-    height: 35px; 
-    padding: 0;
-}
-
-th { background: #eee; }
+th, td { border: 1px solid #bbb; text-align: center; height: 38px; font-size: 13px; overflow: hidden; }
+th { background: #f4f4f4; }
 .weekend { background: #fff0f0; }
 
-/* 내부 테이블(칸 쪼개기) 스타일 */
-.daily-attendance-row table, .sub-row table, .summary-row-table {
-    width: 100%; height: 100%; border-collapse: collapse; table-layout: fixed; border: none;
-}
-.daily-attendance-row td, .sub-row td, .summary-row-table td {
-    border: 0.5px solid #ccc; cursor: pointer; height: 35px;
-}
+/* 내부 테이블 줄 맞춤 핵심 */
+.daily-attendance-row, .sub-row, .summary-area { padding: 0 !important; }
+table table { width: 100%; height: 100%; border: none; table-layout: fixed; border-collapse: collapse; }
+table table td { border: 0.5px solid #ddd; height: 38px; }
+
+.footer-title { background: #eee; font-weight: bold; }
