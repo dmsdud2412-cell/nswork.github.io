@@ -7,44 +7,20 @@ let masterData = { manager: [], staff: [] };
 let lastFetchedAttendance = []; 
 
 window.onload = function() {
-    createMonthPicker(); 
+    renderMonthPicker();
     loadAllData();
 };
 
-function createMonthPicker() {
-    const header = document.querySelector('.header');
-    const pickerDiv = document.createElement('div');
-    pickerDiv.style.cssText = "text-align:center; margin: 10px 0; padding:10px; background:#fff; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.05);";
-    for (let m = 1; m <= 12; m++) {
-        const btn = document.createElement('button');
-        btn.innerText = `${m}월`;
-        btn.className = 'tab-btn';
-        btn.style.margin = "0 2px";
-        if(m === currentMonth) btn.style.background = "#d32f2f";
-        btn.onclick = function() {
-            currentMonth = m;
-            document.querySelectorAll('.month-picker button').forEach(b => b.style.background = "");
-            this.style.background = "#d32f2f";
-            renderTable(lastFetchedAttendance);
-        };
-        pickerDiv.appendChild(btn);
-    }
-    pickerDiv.className = 'month-picker';
-    header.after(pickerDiv);
-}
-
-function switchTab(type) {
-    currentType = type;
-    document.querySelectorAll('.tabs .tab-btn').forEach(btn => btn.classList.remove('active'));
-    document.getElementById(`btn-${type}`).classList.add('active');
-    renderTable(lastFetchedAttendance);
-}
-
+// 2026년 공휴일 (1월 1일 신정 포함)
 function getPublicHolidays(month) {
-    const holidays = { 1:[1], 2:[16,17,18], 3:[1,2], 5:[5,24,25], 6:[6], 8:[15,17], 9:[24,25,26], 10:[3,5,9], 12:[25] };
+    const holidays = { 
+        1:[1], 2:[16,17,18], 3:[1,2], 5:[5,24,25], 
+        6:[6], 8:[15,17], 9:[24,25,26], 10:[3,5,9], 12:[25] 
+    };
     return holidays[month] || [];
 }
 
+// 주말 계산
 function getWeekends(year, month) {
     let weekends = [];
     let lastDay = new Date(year, month, 0).getDate(); 
@@ -55,7 +31,26 @@ function getWeekends(year, month) {
     return weekends;
 }
 
+// 월 선택 버튼 생성
+function renderMonthPicker() {
+    const container = document.getElementById('month-picker-container');
+    if (!container) return;
+    container.innerHTML = '';
+    for (let m = 1; m <= 12; m++) {
+        const btn = document.createElement('button');
+        btn.innerText = `${m}월`;
+        btn.className = `month-btn ${m === currentMonth ? 'active' : ''}`;
+        btn.onclick = () => {
+            currentMonth = m;
+            renderMonthPicker();
+            renderTable(lastFetchedAttendance);
+        };
+        container.appendChild(btn);
+    }
+}
+
 async function loadAllData() {
+    const tbody = document.getElementById('attendance-body');
     try {
         const response = await fetch(GAN_URL);
         const res = await response.json();
@@ -68,17 +63,46 @@ async function loadAllData() {
         });
         lastFetchedAttendance = res.attendance;
         renderTable(lastFetchedAttendance);
-    } catch (e) { console.error("로드 실패"); }
+    } catch (e) { 
+        console.error("로드 실패");
+        if(tbody) tbody.innerHTML = '<tr><td colspan="37" style="text-align:center; color:red;">데이터 로드 실패</td></tr>';
+    }
 }
 
 function renderTable(attendance) {
     const tbody = document.getElementById('attendance-body');
-    if (!tbody) return;
-    tbody.innerHTML = '';
-    const list = (currentType === 'manager') ? masterData.manager : masterData.staff;
+    const dateHeader = document.getElementById('date-header');
+    const holidayRow = document.getElementById('holiday-row');
+    const workRow = document.getElementById('work-row');
+    if(!tbody || !dateHeader) return;
+    
+    document.getElementById('table-month-title').innerText = `${currentMonth}월 근태 현황`;
+    
+    dateHeader.innerHTML = '';
+    const hRowLabel = holidayRow.cells[0]; holidayRow.innerHTML = ''; holidayRow.appendChild(hRowLabel);
+    const wRowLabel = workRow.cells[0]; workRow.innerHTML = ''; workRow.appendChild(wRowLabel);
+
     const weekends = getWeekends(currentYear, currentMonth);
     const holidays = getPublicHolidays(currentMonth);
     const allHolidays = [...new Set([...weekends, ...holidays])];
+
+    for(let i=1; i<=31; i++) {
+        const th = document.createElement('th');
+        th.innerText = i;
+        if (allHolidays.includes(i)) th.className = 'weekend';
+        dateHeader.appendChild(th);
+        
+        const tdH = document.createElement('td');
+        if (allHolidays.includes(i)) tdH.className = 'weekend';
+        holidayRow.appendChild(tdH);
+
+        const tdW = document.createElement('td');
+        if (allHolidays.includes(i)) tdW.className = 'weekend';
+        workRow.appendChild(tdW);
+    }
+
+    tbody.innerHTML = '';
+    const list = (currentType === 'manager') ? masterData.manager : masterData.staff;
 
     list.forEach(person => {
         const tr = document.createElement('tr');
@@ -88,6 +112,7 @@ function renderTable(attendance) {
             <td id="un-${person.name}">${person.unused}</td>
             <td id="rem-${person.name}">${person.unused}</td>
             <td id="rate-${person.name}">0%</td>`;
+        
         for (let i = 1; i <= 31; i++) {
             let status = "";
             const match = attendance.find(r => r[0] == currentMonth && r[1] == currentType && r[2] == person.name && r[3] == i);
@@ -98,25 +123,20 @@ function renderTable(attendance) {
         tr.innerHTML = rowHtml;
         tbody.appendChild(tr);
     });
-    applyFooterColor(allHolidays);
     updateCounts();
-}
-
-function applyFooterColor(holidays) {
-    const footerRows = document.querySelectorAll('#holiday-row td, #work-row td');
-    footerRows.forEach((cell, idx) => {
-        if (idx >= 1) { // 합계 라벨 이후 날짜칸들
-            const dayNum = idx; 
-            if (holidays.includes(dayNum)) cell.classList.add('weekend');
-            else cell.classList.remove('weekend');
-        }
-    });
 }
 
 function getStatusClass(status) {
     if (status === '휴가' || status === '연차') return 'status-연차';
-    if (status.includes('반차') && status !== '반반차') return 'status-반차';
+    if (status.includes('반차')) return 'status-반차';
     return '';
+}
+
+function switchTab(type) {
+    currentType = type;
+    document.querySelectorAll('.tabs .tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(`btn-${type}`).classList.add('active');
+    renderTable(lastFetchedAttendance);
 }
 
 function showDropdown(cell) {
@@ -162,11 +182,12 @@ function updateCounts() {
         const reqEl = document.getElementById(`req-${name}`);
         const unEl = document.getElementById(`un-${name}`);
         if(reqEl && unEl) {
-            const rem = parseFloat(unEl.innerText) - used;
+            const reqVal = parseFloat(reqEl.innerText) || 0;
+            const unVal = parseFloat(unEl.innerText) || 0;
+            const rem = unVal - used;
             document.getElementById(`rem-${name}`).innerText = rem;
-            const rate = ((parseFloat(reqEl.innerText) - rem) / parseFloat(reqEl.innerText)) * 100;
+            const rate = reqVal > 0 ? ((reqVal - rem) / reqVal) * 100 : 0;
             document.getElementById(`rate-${name}`).innerText = Math.floor(rate) + '%';
         }
     });
 }
-
