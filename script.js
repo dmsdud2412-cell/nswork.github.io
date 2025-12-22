@@ -1,4 +1,4 @@
-// 1. 새로 발급받은 구글 시트 연결 주소
+// 1. 구글 시트 연결 주소
 const GAN_URL = "https://script.google.com/macros/s/AKfycbxzW9z5RlDSmrYzMAH_2OCmorPWFbW4FposdvNNfaTOSsuzvamK5ANZIZL3-S43roYh/exec";
 
 // 2. 명단 데이터
@@ -20,7 +20,6 @@ for (let i = 1; i <= 50; i++) {
 let currentType = 'manager';
 const holidayDates = [1, 3, 4, 10, 11, 17, 18, 24, 25, 31];
 
-// 페이지 로드 시 실행
 window.onload = function() {
     loadDataFromServer(); 
 };
@@ -32,7 +31,6 @@ function switchTab(type) {
     loadDataFromServer();
 }
 
-// 서버에서 데이터 불러오기
 async function loadDataFromServer() {
     const tbody = document.getElementById('attendance-body');
     tbody.innerHTML = '<tr><td colspan="37" style="text-align:center;">데이터를 불러오는 중입니다...</td></tr>';
@@ -64,66 +62,63 @@ function renderTable(type, serverData) {
         
         for (let i = 1; i <= 31; i++) {
             let status = "";
-            // 서버 데이터 형식 [type, name, day, status] 에 맞춰 찾기
             const match = serverData.find(row => row[0] === type && row[1] === person.name && String(row[2]) === String(i));
             if(match) status = match[3];
 
             const statusClass = getStatusClass(status);
             const holidayClass = holidayDates.includes(i) ? 'weekend' : '';
-            rowHtml += `<td class="at-cell ${holidayClass} ${statusClass}" data-day="${i}">${status}</td>`;
+            // 드롭다운 적용을 위해 클릭 이벤트를 셀에 직접 연결
+            rowHtml += `<td class="at-cell ${holidayClass} ${statusClass}" data-day="${i}" onclick="showDropdown(this)">${status}</td>`;
         }
         tr.innerHTML = rowHtml;
         tbody.appendChild(tr);
     });
     
-    attachCellEvents();
     updateCounts();
 }
 
-function getStatusClass(status) {
-    if (status === '휴가' || status === '연차') return 'status-연차';
-    if (status.includes('반차') && status !== '반반차') return 'status-반차';
-    if (status === '반반차') return 'status-반반차';
-    return '';
-}
+// --- 드롭다운 핵심 로직 시작 ---
+function showDropdown(cell) {
+    // 이미 드롭다운이 열려있으면 중복 생성 방지
+    if (cell.querySelector('select')) return;
 
-function attachCellEvents() {
-    const cells = document.querySelectorAll('.at-cell');
+    const currentStatus = cell.innerText;
     const statuses = ['', '휴가', '연차', '오전반차', '오후반차', '반반차', '출장'];
     
-    cells.forEach(cell => {
-        cell.onclick = async function() {
-            let currentIdx = statuses.indexOf(this.innerText);
-            let nextIdx = (currentIdx + 1) % statuses.length;
-            let status = statuses[nextIdx];
-            
-            const oldText = this.innerText;
-            this.innerText = status; 
-            
-            const day = this.getAttribute('data-day');
-            const name = this.parentElement.getAttribute('data-person');
+    const select = document.createElement('select');
+    select.style.width = '100%';
+    select.style.height = '100%';
+    select.style.fontSize = '11px';
+    select.style.border = 'none';
+    select.style.appearance = 'none'; // 기본 화살표 숨김(디자인 깔끔하게)
+    select.style.textAlign = 'center';
 
-            try {
-                // 클릭 즉시 서버로 전송
-                await fetch(GAN_URL, {
-                    method: "POST",
-                    body: JSON.stringify({
-                        type: currentType,
-                        name: name,
-                        day: day,
-                        status: status
-                    })
-                });
-                const isWeekend = this.classList.contains('weekend') ? 'weekend ' : '';
-                this.className = `at-cell ${isWeekend}${getStatusClass(status)}`;
-                updateCounts();
-            } catch (e) {
-                alert("연결이 불안정합니다. 다시 시도해 주세요.");
-                this.innerText = oldText;
-            }
-        };
+    statuses.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s;
+        opt.innerText = s === '' ? ' (선택안함) ' : s;
+        if(s === currentStatus) opt.selected = true;
+        select.appendChild(opt);
     });
-}
 
-function updateCounts() {
-    const rows = document.querySelectorAll
+    cell.innerText = '';
+    cell.appendChild(select);
+    select.focus();
+
+    // 선택이 변경되었을 때 저장 로직 실행
+    select.onchange = async function() {
+        const newStatus = this.value;
+        const day = cell.getAttribute('data-day');
+        const name = cell.parentElement.getAttribute('data-person');
+
+        cell.innerText = newStatus; // 화면 즉시 변경
+        const isWeekend = cell.classList.contains('weekend') ? 'weekend ' : '';
+        cell.className = `at-cell ${isWeekend}${getStatusClass(newStatus)}`;
+
+        try {
+            await fetch(GAN_URL, {
+                method: "POST",
+                body: JSON.stringify({
+                    type: currentType,
+                    name: name,
+                    day: day,
