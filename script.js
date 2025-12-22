@@ -1,6 +1,5 @@
 const GAN_URL = "https://script.google.com/macros/s/AKfycby42R57TUGVePyKRxfsFqeLuinCy0rxIVZudX2-Z1tERUpYCxJWw50EU0ZsqIrVGlWy/exec";
 
-// URL 지점 필터 처리 (없으면 전체 노출)
 const urlParams = new URLSearchParams(window.location.search);
 const myBranch = urlParams.get('branch');
 
@@ -9,34 +8,57 @@ let currentMonth = 1;
 let masterData = { manager: [], staff: [] };
 let lastFetchedAttendance = [];
 
-window.onload = () => { renderMonthPicker(); loadAllData(); addExcelButton(); };
+window.onload = () => { 
+    renderMonthPicker(); 
+    loadAllData(); 
+    // 버튼이 중복 생성되지 않도록 처음에 한 번만 확실히 생성
+    addExcelButton(); 
+};
 
-// [기능] 엑셀 저장 버튼 (기존 디자인을 해치지 않게 월 선택바 옆에 배치)
+// 엑셀 저장 버튼 생성 로직 (사라지지 않게 배치 고정)
 function addExcelButton() {
-    if (document.getElementById('btn-excel')) return;
+    let btn = document.getElementById('btn-excel');
+    if (btn) return; // 이미 있으면 생성 안함
+
     const container = document.getElementById('month-picker');
-    const btn = document.createElement('button');
+    btn = document.createElement('button');
     btn.id = 'btn-excel';
     btn.innerText = '엑셀 저장 📥';
     btn.className = 'month-btn';
-    btn.style.cssText = "margin-left:20px; background:#2e7d32; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:4px;";
+    // 디자인을 건드리지 않고 기존 버튼들과 조화를 이루도록 스타일 설정
+    btn.style.cssText = "margin-left:20px; background:#2e7d32; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:4px; font-weight:bold;";
     btn.onclick = downloadExcel;
     container.appendChild(btn);
 }
 
+// 엑셀 다운로드 (데이터가 깨지거나 안 열리는 문제 해결 버전)
 function downloadExcel() {
     const table = document.getElementById('attendance-table');
+    if (!table) return;
+
     const branchInfo = myBranch ? myBranch : "전체지점";
     const filename = `2026년_${currentMonth}월_근태현황_${branchInfo}.xls`;
-    const html = table.outerHTML;
-    const url = 'data:application/vnd.ms-excel;charset=utf-8,\uFEFF' + encodeURIComponent(html);
+    
+    // 테이블의 현재 내용을 그대로 복사 (드롭다운 제외하고 텍스트만)
+    let tableHtml = table.outerHTML.replace(/<select[\s\S]*?<\/select>/g, function(match) {
+        let val = match.match(/<option value="(.*?)" selected/);
+        return val ? val[1] : "";
+    });
+
+    const template = `
+        <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+        <head><meta charset="UTF-8"></head>
+        <body>${tableHtml}</body></html>`;
+
+    const blob = new Blob([template], { type: 'application/vnd.ms-excel' });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
     link.download = filename;
     link.click();
+    URL.revokeObjectURL(url);
 }
 
-// 2026년 공휴일 데이터
 function getHolidays(month) {
     const data = { 
         1: { 1: "신정" }, 2: { 16: "설날", 17: "설날", 18: "설날" }, 
@@ -48,19 +70,15 @@ function getHolidays(month) {
     return data[month] || {};
 }
 
-// [복구] 명단 로드 로직 (필터가 있어도 명단이 사라지지 않게 안전 처리)
 async function loadAllData() {
     try {
         const response = await fetch(GAN_URL);
         const res = await response.json();
         masterData.manager = []; masterData.staff = [];
-        
         if(res.config) {
             res.config.slice(1).forEach(row => {
                 const bName = row[1] || "";
-                // 파라미터가 있을 때만 필터링, 없으면 모두 추가
                 if (myBranch && bName !== myBranch) return; 
-
                 const p = { branch: bName, name: row[2] || "", req: row[3] || 0, unused: row[4] || 0 };
                 if (row[0] === 'manager') masterData.manager.push(p);
                 else masterData.staff.push(p);
@@ -72,11 +90,8 @@ async function loadAllData() {
 }
 
 function renderTable(attendance) {
-    // [기능 추가] 상단 제목(n월 근태 현황) 자동 업데이트
     const titleEl = document.querySelector('h2') || document.getElementById('table-title');
-    if (titleEl) {
-        titleEl.innerText = `${currentMonth}월 근태 현황`;
-    }
+    if (titleEl) titleEl.innerText = `${currentMonth}월 근태 현황`;
 
     const tbody = document.getElementById('attendance-body');
     const dateRow = document.getElementById('row-dates');
@@ -164,7 +179,6 @@ function showDropdown(cell) {
         cell.innerText = newStatus;
         applyStatusColor(cell, newStatus);
         updateCounts(); 
-        // [기능] 저장 전송
         fetch(GAN_URL, {
             method: "POST", mode: "no-cors",
             body: JSON.stringify({ month: parseInt(currentMonth), type: currentType, name: name, day: parseInt(day), status: newStatus })
@@ -184,11 +198,9 @@ function updateCounts() {
             const txt = c.innerText;
             const day = parseInt(c.getAttribute('data-day'));
             if(!txt) return;
-            // 연차 차감 수식 (반반차 0.25 적용)
             if (txt === '연차') used += 1;
             else if (txt === '반반차') used += 0.25;
             else if (txt.includes('반차')) used += 0.5;
-            // 하단 카운트 (항목 있으면 1명)
             if (['연차', '오전반차', '오후반차', '반반차', '휴가', '출장'].includes(txt)) dailyVacationCount[day] += 1;
         });
         const unused = parseFloat(row.cells[3].innerText) || 0;
@@ -220,6 +232,8 @@ function renderMonthPicker() {
         btn.onclick = () => { currentMonth = m; renderMonthPicker(); loadAllData(); };
         container.appendChild(btn);
     }
+    // 월 버튼을 다시 그릴 때 엑셀 버튼도 다시 붙여줌
+    addExcelButton();
 }
 
 function switchTab(type) {
@@ -227,4 +241,6 @@ function switchTab(type) {
     document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
     document.getElementById(`btn-${type}`).classList.add('active');
     renderTable(lastFetchedAttendance);
+    // 탭 전환 시에도 엑셀 버튼 유지
+    addExcelButton();
 }
