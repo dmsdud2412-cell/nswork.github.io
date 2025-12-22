@@ -1,5 +1,7 @@
+// 1. 구글 시트 연결 주소
 const GAN_URL = "https://script.google.com/macros/s/AKfycbxzW9z5RlDSmrYzMAH_2OCmorPWFbW4FposdvNNfaTOSsuzvamK5ANZIZL3-S43roYh/exec";
 
+// 2. 명단 데이터
 const managerList = [
     { branch: "대전동지점", name: "이승삼", required: 17, unused: 17 },
     { branch: "대전서지점", name: "김학형", required: 17, unused: 17 },
@@ -18,37 +20,27 @@ for (let i = 1; i <= 50; i++) {
 let currentType = 'manager';
 const holidayDates = [1, 3, 4, 10, 11, 17, 18, 24, 25, 31];
 
-// [강력 수정] 페이지 로드 즉시 명단부터 무조건 띄웁니다.
+// [시작] 페이지 로드 시 명단부터 즉시 그리기
 window.onload = function() {
-    renderTable(currentType, []); // 구글 시트 기다리지 않고 바로 명단 생성
-    loadDataFromServer();
+    renderBaseTable();    // 명단 0.1초 만에 띄우기
+    loadDataFromServer(); // 구글 시트에서 데이터 가져오기
 };
 
 function switchTab(type) {
     currentType = type;
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     document.getElementById(`btn-${type}`).classList.add('active');
-    renderTable(currentType, []); // 탭 전환 시에도 명단부터 즉시 표시
+    renderBaseTable(); 
     loadDataFromServer();
 }
 
-async function loadDataFromServer() {
-    try {
-        const response = await fetch(GAN_URL);
-        if (!response.ok) throw new Error('Network response was not ok');
-        const serverData = await response.json();
-        renderTable(currentType, serverData); // 데이터 로드 완료 후 값 채우기
-    } catch (error) {
-        console.error("데이터 로드 실패:", error);
-    }
-}
-
-function renderTable(type, serverData) {
+// 명단 레이아웃만 먼저 만드는 함수
+function renderBaseTable() {
     const tbody = document.getElementById('attendance-body');
     if (!tbody) return;
     tbody.innerHTML = '';
     
-    const dataList = (type === 'manager') ? managerList : staffList;
+    const dataList = (currentType === 'manager') ? managerList : staffList;
 
     dataList.forEach(person => {
         const tr = document.createElement('tr');
@@ -61,29 +53,45 @@ function renderTable(type, serverData) {
             <td class="num-cell" id="rate-${person.name}">0%</td>`;
         
         for (let i = 1; i <= 31; i++) {
-            let status = "";
-            if (serverData && serverData.length > 0) {
-                const match = serverData.find(row => row[0] === type && row[1] === person.name && String(row[2]) === String(i));
-                if(match) status = match[3];
-            }
-
-            const statusClass = getStatusClass(status);
             const holidayClass = holidayDates.includes(i) ? 'weekend' : '';
-            rowHtml += `<td class="at-cell ${holidayClass} ${statusClass}" data-day="${i}" onclick="showDropdown(this)">${status}</td>`;
+            rowHtml += `<td class="at-cell ${holidayClass}" data-day="${i}" onclick="showDropdown(this)"></td>`;
         }
         tr.innerHTML = rowHtml;
         tbody.appendChild(tr);
     });
-    
-    updateCounts();
+    updateCounts(); // 초기 계산
 }
 
+// 서버에서 저장된 값 가져와서 칸 채우기
+async function loadDataFromServer() {
+    try {
+        const response = await fetch(GAN_URL);
+        const serverData = await response.json();
+        
+        serverData.forEach(row => {
+            const [type, name, day, status] = row;
+            if (type === currentType) {
+                const tr = document.querySelector(`tr[data-person="${name}"]`);
+                if (tr) {
+                    const cell = tr.querySelector(`td[data-day="${day}"]`);
+                    if (cell) {
+                        cell.innerText = status;
+                        cell.className = `at-cell ${holidayDates.includes(parseInt(day)) ? 'weekend' : ''} ${getStatusClass(status)}`;
+                    }
+                }
+            }
+        });
+        updateCounts(); // 데이터 로드 후 재계산
+    } catch (e) {
+        console.log("데이터 로드 중 오류가 발생했으나 명단은 유지됩니다.");
+    }
+}
+
+// 드롭다운 선택 및 즉시 반영 로직
 function showDropdown(cell) {
     if (cell.querySelector('select')) return;
-
     const currentStatus = cell.innerText;
     const statuses = ['', '휴가', '연차', '오전반차', '오후반차', '반반차', '출장'];
-    
     const select = document.createElement('select');
     select.style.cssText = "width:100%; height:100%; border:none; background:transparent; font-size:12px; text-align:center; cursor:pointer;";
 
@@ -104,34 +112,32 @@ function showDropdown(cell) {
         const day = cell.getAttribute('data-day');
         const name = cell.parentElement.getAttribute('data-person');
 
+        // [핵심] 서버 응답 기다리지 않고 화면부터 즉시 변경
         cell.innerText = newStatus;
-        const isWeekend = cell.classList.contains('weekend') ? 'weekend ' : '';
-        cell.className = `at-cell ${isWeekend}${getStatusClass(newStatus)}`;
+        cell.className = `at-cell ${holidayDates.includes(parseInt(day)) ? 'weekend' : ''} ${getStatusClass(newStatus)}`;
+        
+        // 즉시 숫자 업데이트 (속도 개선 포인트)
+        updateCounts(); 
 
-        // 저장 중임을 시각적으로 표시 (노란색 배경)
-        cell.style.backgroundColor = "#fff9c4";
+        // 저장 진행 중 표시 (노란색)
+        cell.style.backgroundColor = "#fff9c4"; 
 
         try {
             const res = await fetch(GAN_URL, {
                 method: "POST",
                 body: JSON.stringify({ type: currentType, name: name, day: day, status: newStatus })
             });
-            
             if(res.ok) {
-                // 저장 성공 시: 초록색으로 잠깐 반짝인 후 원래 색으로
-                cell.style.backgroundColor = "#c8e6c9";
+                // 저장 성공 시 초록색 반짝
+                cell.style.backgroundColor = "#c8e6c9"; 
                 setTimeout(() => { cell.style.backgroundColor = ""; }, 500);
             }
-            updateCounts();
         } catch (e) {
-            alert("저장에 실패했습니다. 인터넷 연결을 확인하세요.");
+            alert("구글 시트 저장 실패! 인터넷 연결을 확인해주세요.");
             cell.style.backgroundColor = "#ffcdd2"; // 에러 시 빨간색
         }
     };
-
-    select.onblur = function() {
-        if (cell.contains(this)) cell.innerText = this.value;
-    };
+    select.onblur = function() { if (cell.contains(this)) cell.innerText = this.value; };
 }
 
 function getStatusClass(status) {
@@ -153,7 +159,6 @@ function updateCounts() {
             else if (txt.includes('반차') && txt !== '반반차') used += 0.5;
             else if (txt === '반반차') used += 0.25;
         });
-        
         const reqEl = document.getElementById(`req-${name}`);
         const unEl = document.getElementById(`un-${name}`);
         if(reqEl && unEl) {
@@ -165,7 +170,8 @@ function updateCounts() {
             document.getElementById(`rate-${name}`).innerText = Math.floor(rate) + '%';
         }
     });
-
+    
+    // 하단 합계 업데이트
     const hFooter = document.querySelectorAll('#holiday-row td:not(.footer-label)');
     const wFooter = document.querySelectorAll('#work-row td:not(.footer-label)');
     for (let i = 0; i < 31; i++) {
