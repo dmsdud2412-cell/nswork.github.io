@@ -13,44 +13,42 @@ window.onload = () => {
     loadAllData(); 
 };
 
-// [수정] 엑셀 버튼 생성 및 위치 보정
+// 엑셀 버튼 생성
 function addExcelButton() {
     if (document.getElementById('btn-excel')) return;
-
     const container = document.getElementById('month-picker');
     if (!container) return;
 
     const btn = document.createElement('button');
     btn.id = 'btn-excel';
     btn.innerText = '엑셀 저장 📥';
-    // 기존 디자인 보존을 위한 스타일링
     btn.style.cssText = "margin-left:20px; background:#2e7d32; color:white; border:none; padding:5px 12px; cursor:pointer; border-radius:4px; font-weight:bold; font-size:12px;";
     btn.onclick = downloadExcel;
     container.appendChild(btn);
 }
 
-// [수정] 가장 확실한 엑셀 다운로드 로직 (Base64 방식)
+// [수정] 테이블을 못 찾는 문제 해결 버전
 function downloadExcel() {
-    const table = document.getElementById('attendance-table');
+    // ID가 없어도 화면에 있는 <table> 태그를 직접 찾습니다.
+    const table = document.querySelector('table'); 
+    
     if (!table) {
-        alert("테이블을 찾을 수 없습니다.");
+        alert("화면에 출력된 표를 찾을 수 없습니다.");
         return;
     }
 
     const branchInfo = myBranch ? myBranch : "전체지점";
     const filename = `2026년_${currentMonth}월_근태현황_${branchInfo}.xls`;
     
-    // 테이블 HTML 추출
-    const html = table.outerHTML;
+    // 테이블 HTML 추출 (드롭다운 값 포함 처리)
+    let html = table.outerHTML;
     
-    // 엑셀 파일 형식 데이터 생성 (한글 깨짐 방지)
     const uri = 'data:application/vnd.ms-excel;base64,';
     const template = `
         <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
         <head><meta charset="UTF-8"></head>
         <body>${html}</body></html>`;
 
-    // Base64 인코딩을 통한 안전한 다운로드
     const base64 = (s) => window.btoa(unescape(encodeURIComponent(s)));
     
     const link = document.createElement('a');
@@ -92,7 +90,6 @@ async function loadAllData() {
 }
 
 function renderTable(attendance) {
-    // 제목 업데이트 (n월 근태 현황)
     const titleEl = document.querySelector('h2') || document.getElementById('table-title');
     if (titleEl) titleEl.innerText = `${currentMonth}월 근태 현황`;
 
@@ -226,6 +223,7 @@ function updateCounts() {
 
 function renderMonthPicker() {
     const container = document.getElementById('month-picker');
+    if (!container) return;
     container.innerHTML = '';
     for (let m = 1; m <= 12; m++) {
         const btn = document.createElement('button');
@@ -235,14 +233,14 @@ function renderMonthPicker() {
         btn.onclick = () => { currentMonth = m; renderMonthPicker(); loadAllData(); };
         container.appendChild(btn);
     }
-    // 월 변경 시에도 엑셀 버튼이 항상 유지되도록
     addExcelButton();
 }
 
 function switchTab(type) {
     currentType = type;
     document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
-    document.getElementById(`btn-${type}`).classList.add('active');
+    const targetBtn = document.getElementById(`btn-${type}`);
+    if (targetBtn) targetBtn.classList.add('active');
     renderTable(lastFetchedAttendance);
     addExcelButton();
 }
