@@ -8,14 +8,18 @@ document.addEventListener('DOMContentLoaded', () => {
             let nextIdx = (statuses.indexOf(current) + 1) % statuses.length;
             let nextStatus = statuses[nextIdx];
 
-            // 텍스트 변경
             cell.innerText = nextStatus;
 
-            // 클래스 변경으로 색상 적용
-            cell.className = 'at-cell'; // 초기화
-            if (nextStatus === '연차') cell.classList.add('status-연차');
-            else if (nextStatus.includes('반차')) cell.classList.add('status-반차');
-            else if (nextStatus === '반반차') cell.classList.add('status-반반차');
+            // 클래스 초기화 후 상태에 맞게 추가
+            cell.classList.remove('status-연차', 'status-반차', 'status-반반차');
+            
+            if (nextStatus === '연차') {
+                cell.classList.add('status-연차');
+            } else if (nextStatus.includes('반차') && nextStatus !== '반반차') {
+                cell.classList.add('status-반차');
+            } else if (nextStatus === '반반차') {
+                cell.classList.add('status-반반차');
+            }
 
             updateCounts();
         });
@@ -29,10 +33,12 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let i = 0; i < 31; i++) {
             let hCount = 0;
             rows.forEach(row => {
-                let cellText = row.querySelectorAll('.at-cell')[i].innerText;
-                if (cellText === '연차') hCount += 1;
-                else if (cellText.includes('반차')) hCount += 0.5;
-                else if (cellText === '반반차') hCount += 0.25;
+                const cell = row.querySelectorAll('.at-cell')[i];
+                if (!cell) return;
+                const txt = cell.innerText;
+                if (txt === '연차') hCount += 1;
+                else if (txt.includes('반차') && txt !== '반반차') hCount += 0.5;
+                else if (txt === '반반차') hCount += 0.25;
             });
             holidayFooter[i].innerText = hCount;
             workFooter[i].innerText = rows.length - hCount;
