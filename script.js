@@ -10,7 +10,7 @@ let lastFetchedAttendance = [];
 
 window.onload = () => { renderMonthPicker(); loadAllData(); };
 
-// [엑셀 버튼] 기존 디자인 보존하며 월 선택바 옆에 유지
+// [기능] 엑셀 버튼: 기존 디자인 보존하며 월 버튼 옆에 배치
 function addExcelButton() {
     if (document.getElementById('btn-excel')) return;
     const container = document.getElementById('month-picker');
@@ -50,7 +50,7 @@ function getHolidays(month) {
     return data[month] || {};
 }
 
-// [명단 로드] 사라진 명단을 다시 불러오는 핵심 로직
+// [기능] 명단 로드: 필터링 오류 없이 명단을 안전하게 masterData에 저장
 async function loadAllData() {
     try {
         const response = await fetch(GAN_URL);
@@ -71,12 +71,11 @@ async function loadAllData() {
 }
 
 function renderTable(attendance) {
-    // [제목 변경] 화면 전체를 건드리지 않고 '근태 현황'이 포함된 h2만 정밀 타격
-    const h2Tags = document.getElementsByTagName('h2');
-    for (let h2 of h2Tags) {
-        if (h2.innerText.includes('근태 현황')) {
-            h2.innerText = `${currentMonth}월 근태 현황`;
-            break; 
+    // [제목 변경] 화면 구성을 망가뜨리지 않고 제목 텍스트만 안전하게 변경
+    const titles = document.getElementsByTagName('h2');
+    for (let t of titles) {
+        if (t.innerText.includes('근태 현황')) {
+            t.innerText = `${currentMonth}월 근태 현황`;
         }
     }
 
@@ -89,6 +88,7 @@ function renderTable(attendance) {
 
     if(!tbody || !dateRow) return;
 
+    // 테이블 초기화
     tbody.innerHTML = ''; dateRow.innerHTML = ''; weekRow.innerHTML = ''; holidayRow.innerHTML = '';
     while(vRow.cells.length > 1) vRow.deleteCell(1);
     while(wRow.cells.length > 1) wRow.deleteCell(1);
@@ -96,6 +96,7 @@ function renderTable(attendance) {
     const holidayInfo = getHolidays(currentMonth);
     const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
 
+    // 날짜 헤더 생성
     for (let d = 1; d <= 31; d++) {
         const dateObj = new Date(2026, currentMonth - 1, d);
         const isExist = dateObj.getMonth() === currentMonth - 1;
@@ -113,6 +114,7 @@ function renderTable(attendance) {
         wRow.insertCell(-1).id = `work-count-${d}`;
     }
 
+    // 명단 렌더링
     const list = (currentType === 'manager') ? masterData.manager : masterData.staff;
     list.forEach(p => {
         const tr = document.createElement('tr');
@@ -187,6 +189,7 @@ function updateCounts() {
             const txt = c.innerText;
             const day = parseInt(c.getAttribute('data-day'));
             if(!txt) return;
+            // [중요] 반반차 0.25 차감 수식 보존
             if (txt === '연차') used += 1;
             else if (txt === '반반차') used += 0.25;
             else if (txt.includes('반차')) used += 0.5;
