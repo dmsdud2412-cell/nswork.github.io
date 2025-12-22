@@ -4,71 +4,60 @@
     <meta charset="UTF-8">
     <title>2026 근태 관리 시스템</title>
     <style>
-        /* 기존 디자인 유지 */
-        body { font-family: 'Pretendard', sans-serif; margin: 20px; }
+        /* 사용자님의 완벽한 디자인 스타일 */
+        body { font-family: 'Pretendard', sans-serif; margin: 20px; background-color: #f4f7f9; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .tabs { display: flex; gap: 5px; }
         .tab-btn { padding: 10px 20px; border: none; background: #e0e0e0; cursor: pointer; border-radius: 5px; font-weight: bold; }
         .tab-btn.active { background: #d32f2f; color: white; }
         
-        /* [수정 핵심] 칸 크기를 강제로 맞추는 설정 */
-        table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            min-width: 1600px; 
-            font-size: 13px; 
-            table-layout: fixed; /* 모든 칸의 너비를 고정함 */
-        }
-        
-        th, td { border: 1px solid #eee; padding: 8px; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        
-        /* 각 열의 너비 지정 (앞쪽 정보 칸들은 조금 넓게, 날짜는 좁게) */
-        .col-info { width: 80px; }
-        .col-day { width: 35px; }
-        
+        .table-container { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 1600px; font-size: 13px; table-layout: fixed; }
+        th, td { border: 1px solid #eee; padding: 8px; text-align: center; }
+        th { background: #f8f9fa; }
+
+        /* 사용자님이 정하신 음영 디자인 */
         .weekend { background-color: #ffebee !important; color: #d32f2f; }
-        .status-연차 { background-color: #e3f2fd; color: #1976d2; }
+        .status-연차 { background-color: #e3f2fd; color: #1976d2; font-weight: bold; }
         .status-반차 { background-color: #f1f8e9; color: #388e3c; }
         .at-cell { cursor: pointer; }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>2026 근태 관리</h1>
+        <h1>🗓️ 2026 근태 관리</h1>
         <div class="tabs">
             <button id="btn-manager" class="tab-btn active" onclick="switchTab('manager')">지점장</button>
             <button id="btn-staff" class="tab-btn" onclick="switchTab('staff')">직원</button>
         </div>
     </div>
 
-    <div style="overflow-x: auto; background: white; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); padding: 20px;">
+    <div class="table-container">
         <table>
             <thead>
                 <tr>
-                    <th rowspan="2" class="col-info">지점</th>
-                    <th rowspan="2" class="col-info">성명</th>
-                    <th rowspan="2" style="width: 50px;">연차<br>부여</th>
-                    <th rowspan="2" style="width: 50px;">전년<br>미사용</th>
-                    <th rowspan="2" style="width: 50px;">남은<br>연차</th>
-                    <th rowspan="2" style="width: 60px;">소진율</th>
+                    <th rowspan="2" style="width:100px;">지점</th>
+                    <th rowspan="2" style="width:100px;">성명</th>
+                    <th rowspan="2" style="width:50px;">연차<br>부여</th>
+                    <th rowspan="2" style="width:50px;">전년<br>미사용</th>
+                    <th rowspan="2" style="width:50px;">남은<br>연차</th>
+                    <th rowspan="2" style="width:60px;">소진율</th>
                     <th colspan="31">근태 현황</th>
                 </tr>
                 <tr>
-                    <script>
-                        for(let i=1; i<=31; i++) document.write(`<th class="col-day">${i}</th>`);
-                    </script>
+                    <script>for(let i=1; i<=31; i++) document.write(`<th style="width:35px;">${i}</th>`);</script>
                 </tr>
             </thead>
             <tbody id="attendance-body">
-                <tr><td colspan="37" style="text-align:center; padding:20px;">데이터를 불러오는 중입니다...</td></tr>
+                <tr><td colspan="37" style="text-align:center; padding:20px;">데이터 로딩 중...</td></tr>
             </tbody>
             <tfoot>
-                <tr style="background: #f1f3f5; font-weight: bold;" id="holiday-row">
-                    <td colspan="6" style="text-align: right; padding-right: 15px;">휴가 인원</td>
+                <tr id="holiday-row" style="background:#f1f3f5; font-weight:bold;">
+                    <td colspan="6" style="text-align:right; padding-right:15px;">휴가 인원</td>
                     <script>for(let i=1; i<=31; i++) document.write(`<td>0</td>`);</script>
                 </tr>
-                <tr style="background: #f1f3f5; font-weight: bold;" id="work-row">
-                    <td colspan="6" style="text-align: right; padding-right: 15px;">근무 인원</td>
+                <tr id="work-row" style="background:#f1f3f5; font-weight:bold;">
+                    <td colspan="6" style="text-align:right; padding-right:15px;">근무 인원</td>
                     <script>for(let i=1; i<=31; i++) document.write(`<td>0</td>`);</script>
                 </tr>
             </tfoot>
