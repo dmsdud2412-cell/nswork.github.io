@@ -1,11 +1,11 @@
-/* --- 디자인 불변 --- */
+/* 기본 디자인 유지 */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Malgun Gothic', sans-serif; background: #f4f7f9; padding: 20px; }
 .container { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; }
 
-/* 틀 고정을 위한 Wrapper 설정 */
+/* 틀 고정용 Wrapper */
 .table-wrapper {
-    max-height: 75vh; /* 화면 높이에 맞춰 조절 가능 */
+    max-height: 75vh;
     overflow: auto;
     border: 1px solid #444;
 }
@@ -13,27 +13,29 @@ body { font-family: 'Malgun Gothic', sans-serif; background: #f4f7f9; padding: 2
 table { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; min-width: 1300px; }
 th, td { border: 1px solid #bbb; text-align: center; height: 38px; }
 
-/* --- 엑셀 틀 고정 (Sticky) --- */
+/* 엑셀 틀 고정 (상단 헤더) */
 thead th { 
     position: sticky; 
     z-index: 20; 
     background: #f8f9fa; 
-    outline: 0.5px solid #bbb; /* 테두리 보존 */
+    outline: 0.5px solid #bbb;
 }
 thead tr:nth-child(1) th { top: 0; }
 thead tr:nth-child(2) th { top: 38px; }
 thead tr:nth-child(3) th { top: 76px; }
 
-/* 고정된 헤더 내 특수 배경색 유지 */
+/* 고정 헤더 내 디자인 배경색 */
 .usage-header { background: #e3f2fd !important; color: #1976d2; }
 .usage-cell { background: #f1f8ff; font-size: 11px; }
 .weekend { background: #fff0f0 !important; }
 .holiday-text { color: red; font-size: 11px; font-weight: bold; }
 
+/* 수치 열 폰트 조절 */
 tbody td:nth-child(3), tbody td:nth-child(4), tbody td:nth-child(5), tbody td:nth-child(6) {
     font-size: 11px !important; font-weight: normal; color: #333;
 }
 
+/* 셀 상태별 디자인 (디자인 불변) */
 .at-cell { cursor: pointer; transition: 0.2s; background: #fff; font-size: 12px; }
 .at-cell:hover { background: #f0f0f0; }
 
@@ -41,10 +43,11 @@ tbody td:nth-child(3), tbody td:nth-child(4), tbody td:nth-child(5), tbody td:nt
 .status-반차 { background: #fffac2 !important; font-size: 11px; }
 .status-반반차 { background: #e2fce2 !important; font-size: 9px !important; letter-spacing: -1px; font-weight: bold; }
 
+/* 하단 푸터 고정 */
 tfoot td { background: #fafafa; font-weight: bold; font-size: 13px; position: sticky; bottom: 0; z-index: 10; outline: 0.5px solid #bbb; }
 .footer-label { background: #eee !important; }
 
-/* 탭 디자인 */
+/* 탭 버튼 디자인 */
 .tab-menu { display: flex; gap: 2px; margin-bottom: -2px; }
 .tab-btn {
     padding: 10px 30px; border: 1px solid #bbb; background: #eee; cursor: pointer;
