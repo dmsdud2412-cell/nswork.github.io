@@ -41,6 +41,7 @@ tbody td:nth-child(6) {
 .at-cell { cursor: pointer; transition: 0.2s; background: #fff; font-size: 12px; }
 .at-cell:hover { background: #f0f0f0; }
 
+.status-휴가 { background: #ffcccc !important; font-weight: bold; }
 .status-연차 { background: #ffcccc !important; font-weight: bold; }
 .status-반차 { background: #fffac2 !important; font-size: 11px; }
 .status-반반차 { 
@@ -53,3 +54,4 @@ tbody td:nth-child(6) {
 /* 6. 하단 요약 */
 tfoot td { background: #fafafa; font-weight: bold; font-size: 13px; }
 .footer-label { background: #eee !important; }
+
