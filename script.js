@@ -14,6 +14,7 @@ for (let i = 1; i <= 50; i++) {
 }
 
 let currentType = 'manager';
+const weekends = [1, 3, 4, 10, 11, 17, 18, 24, 25, 31]; // 휴일 날짜 고정
 
 document.addEventListener('DOMContentLoaded', () => { renderTable('manager'); });
 
@@ -32,10 +33,13 @@ function renderTable(type) {
             <td id="unused-${person.name}">${person.unused}</td>
             <td id="remaining-${person.name}">${person.unused}</td>
             <td id="rate-${person.name}">0%</td>`;
+        
         for (let i = 1; i <= 31; i++) {
             const status = savedData[person.name] ? (savedData[person.name][i] || '') : '';
             const statusClass = getStatusClass(status);
-            rowHtml += `<td class="at-cell ${statusClass}" data-day="${i}">${status}</td>`;
+            // 휴일인 경우 'weekend' 클래스 추가하여 세로 음영 적용
+            const holidayClass = weekends.includes(i) ? 'weekend' : '';
+            rowHtml += `<td class="at-cell ${holidayClass} ${statusClass}" data-day="${i}">${status}</td>`;
         }
         tr.innerHTML = rowHtml;
         tbody.appendChild(tr);
@@ -65,7 +69,11 @@ function attachCellEvents() {
             let nextIdx = (statuses.indexOf(cell.innerText) + 1) % statuses.length;
             let status = statuses[nextIdx];
             cell.innerText = status;
-            cell.className = 'at-cell ' + getStatusClass(status);
+            
+            // 기존 클래스 유지하면서 상태 클래스만 변경
+            const isWeekend = cell.classList.contains('weekend') ? 'weekend ' : '';
+            cell.className = `at-cell ${isWeekend}${getStatusClass(status)}`;
+            
             saveData();
             updateCounts();
         };
@@ -103,6 +111,7 @@ function updateCounts() {
         document.getElementById(`remaining-${name}`).innerText = rem % 1 === 0 ? rem : rem.toFixed(2);
         document.getElementById(`rate-${name}`).innerText = Math.floor(rate) + '%';
     });
+    
     const holidayFooter = document.querySelectorAll('#holiday-row td:not(.footer-label)');
     const workFooter = document.querySelectorAll('#work-row td:not(.footer-label)');
     for (let i = 0; i < 31; i++) {
