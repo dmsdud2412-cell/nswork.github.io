@@ -1,8 +1,10 @@
+/* 1. 기본 레이아웃 및 초기화 */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Malgun Gothic', sans-serif; background: #f4f7f9; padding: 20px; }
 .container { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow-x: auto; }
 h1 { text-align: center; color: #333; margin-bottom: 25px; }
 
+/* 2. 테이블 핵심 설정 (너비 고정) */
 table { 
     width: 100%; 
     border-collapse: collapse; 
@@ -13,22 +15,32 @@ table {
 
 th, td { border: 1px solid #bbb; text-align: center; height: 38px; overflow: hidden; }
 
-/* 헤더 스타일 */
+/* 3. 헤더 디자인 (센스 있는 색감) */
 thead th { background: #f8f9fa; font-weight: bold; font-size: 13px; }
 .usage-header { background: #e3f2fd !important; color: #1976d2; }
-.usage-cell { background: #f1f8ff; font-size: 11px; }
+.usage-cell { background: #f1f8ff; font-size: 11px; color: #555; } /* 필수, 미사용 등 제목 */
 .weekend { background: #fff0f0 !important; }
 .holiday-text { color: red; font-size: 11px; font-weight: bold; }
 
-/* 클릭 셀 기본 설정 */
+/* 4. 요청하신 숫자 크기 수정 (중요!) */
+/* 연차 현황 데이터가 들어가는 3, 4, 5, 6번째 칸의 숫자 크기를 줄임 */
+tbody td:nth-child(3), 
+tbody td:nth-child(4), 
+tbody td:nth-child(5), 
+tbody td:nth-child(6) {
+    font-size: 11px !important; /* 위쪽 '미사용', '잔여' 글자 크기와 통일 */
+    font-weight: normal;       /* 너무 굵지 않게 하여 시각적 부담 제거 */
+    color: #333;
+}
+
+/* 5. 클릭 셀 및 상태별 설정 */
 .at-cell { cursor: pointer; transition: 0.2s; background: #fff; font-size: 12px; white-space: nowrap; }
 .at-cell:hover { background: #f0f0f0; }
 
-/* 상태별 색상 및 폰트 조절 */
 .status-연차 { background: #ffcccc !important; font-weight: bold; }
 .status-반차 { background: #fffac2 !important; font-size: 11px; }
 
-/* 반반차: 글자를 작게 해서 칸 너비를 지킴 */
+/* 반반차: 글자를 작게 해서 칸 너비를 유지 */
 .status-반반차 { 
     background: #e2fce2 !important; 
     font-size: 9px !important; 
@@ -36,6 +48,6 @@ thead th { background: #f8f9fa; font-weight: bold; font-size: 13px; }
     font-weight: bold;
 }
 
-/* 하단 요약 */
+/* 6. 하단 요약 */
 tfoot td { background: #fafafa; font-weight: bold; font-size: 13px; }
-.footer-label { background: #eee !important; }
+.footer-label { background: #eee !important; font-size: 13px; }
