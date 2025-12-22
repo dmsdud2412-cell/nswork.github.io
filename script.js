@@ -1,69 +1,62 @@
 document.addEventListener('DOMContentLoaded', () => {
     const totalDays = 31;
-    const managers = ['김진영']; // 관리할 지점장 이름 리스트
+    const managers = ['김진영'];
 
-    // 1. 달력 칸 및 요약 칸 초기화
+    // 1. 초기화: 모든 행에 31칸씩 생성
     function init() {
-        // 지점장별 날짜 칸 생성
+        // 지점장 행 생성
         managers.forEach(name => {
-            const rows = document.querySelectorAll(`tr[data-person="${name}"] .daily-attendance-row, tr[data-person="${name}"] + tr .sub-row`);
-            rows.forEach(row => {
-                const innerTable = document.createElement('table');
+            const rowContainers = document.querySelectorAll(`tr[data-person="${name}"] .daily-attendance-row, tr[data-person="${name}"] + tr .sub-row`);
+            rowContainers.forEach(container => {
+                const table = document.createElement('table');
                 const tr = document.createElement('tr');
                 for (let i = 1; i <= totalDays; i++) {
                     const td = document.createElement('td');
-                    td.classList.add('attendance-cell');
-                    td.dataset.date = i;
-                    td.addEventListener('click', () => handleSelect(td));
+                    td.classList.add('cell-' + i);
+                    td.addEventListener('click', () => {
+                        const types = ['', '연차', '오전반차', '오후반차', '반반차'];
+                        let idx = types.indexOf(td.innerText);
+                        td.innerText = types[(idx + 1) % types.length];
+                        updateSummary();
+                    });
                     tr.appendChild(td);
                 }
-                innerTable.appendChild(tr);
-                row.appendChild(innerTable);
+                table.appendChild(tr);
+                container.appendChild(table);
             });
         });
 
-        // 하단 요약 칸 생성
-        ['holiday-count-row', 'workforce-count-row'].forEach(id => {
-            const container = document.getElementById(id);
-            const innerTable = document.createElement('table');
+        // 하단 요약행 31칸 생성
+        ['holiday-count-row-parent', 'workforce-count-row-parent'].forEach(id => {
+            const parent = document.getElementById(id);
+            const td = document.createElement('td');
+            td.setAttribute('colspan', '31');
+            const table = document.createElement('table');
+            table.classList.add('summary-row-table');
             const tr = document.createElement('tr');
             for (let i = 1; i <= totalDays; i++) {
-                const td = document.createElement('td');
-                td.id = `${id}-${i}`;
-                td.innerText = '0';
-                tr.appendChild(td);
+                const innerTd = document.createElement('td');
+                innerTd.id = id + '-' + i;
+                innerTd.innerText = '0';
+                tr.appendChild(innerTd);
             }
-            innerTable.appendChild(tr);
-            container.appendChild(innerTable);
+            table.appendChild(tr);
+            td.appendChild(table);
+            parent.appendChild(td);
         });
-        updateSummary();
-    }
-
-    function handleSelect(cell) {
-        const types = ['', '연차', '오전반차', '오후반차', '반반차', '휴가'];
-        let current = types.indexOf(cell.innerText);
-        let next = (current + 1) % types.length;
-        cell.innerText = types[next];
-        
-        // 색상 적용
-        cell.style.backgroundColor = '';
-        if (['연차', '휴가'].includes(types[next])) cell.style.backgroundColor = '#ffcccc';
-        else if (types[next].includes('반차')) cell.style.backgroundColor = '#fffac2';
-        
-        updateSummary();
     }
 
     function updateSummary() {
         for (let i = 1; i <= totalDays; i++) {
-            let holidayCount = 0;
-            const dayCells = document.querySelectorAll(`.attendance-cell[data-date="${i}"]`);
-            dayCells.forEach(c => {
-                if (['연차', '휴가'].includes(c.innerText)) holidayCount += 1;
-                else if (c.innerText.includes('반차')) holidayCount += 0.5;
-                else if (c.innerText === '반반차') holidayCount += 0.25;
+            let holiday = 0;
+            // 모든 행의 i번째 날짜 칸을 찾아 계산
+            const dayCells = document.querySelectorAll(`.daily-attendance-row td:nth-child(${i}), .sub-row td:nth-child(${i})`);
+            dayCells.forEach(cell => {
+                if (cell.innerText === '연차') holiday += 1;
+                else if (cell.innerText.includes('반차')) holiday += 0.5;
             });
-            document.getElementById(`holiday-count-row-${i}`).innerText = holidayCount;
-            document.getElementById(`workforce-count-row-${i}`).innerText = managers.length - holidayCount;
+            document.getElementById(`holiday-count-row-parent-${i}`).innerText = holiday;
+            document.getElementById(`workforce-count-row-parent-${i}`).innerText = managers.length - holiday;
         }
     }
 
