@@ -1,51 +1,26 @@
-body {
-    font-family: 'Malgun Gothic', sans-serif;
-    margin: 20px;
-    background-color: #f8f9fa;
-}
+body { font-family: 'Malgun Gothic', sans-serif; background: #f4f7f9; padding: 20px; }
+.container { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow-x: auto; }
+h1 { text-align: center; color: #333; margin-bottom: 20px; }
 
-.container {
-    background-color: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    display: inline-block; /* 표 크기에 맞게 컨테이너 조정 */
-    min-width: 100%;
-}
+table { width: 100%; border-collapse: collapse; min-width: 1400px; border: 2px solid #444; }
+th, td { border: 1px solid #bbb; text-align: center; height: 38px; font-size: 13px; }
 
-h1 {
-    text-align: center;
-    margin-bottom: 20px;
-}
+/* 헤더 색상 센스 */
+thead th { background: #f8f9fa; font-weight: bold; }
+.usage-header { background: #e3f2fd !important; color: #1976d2; }
+.usage-cell { background: #f1f8ff; font-size: 11px; }
+.weekend { background: #fff0f0 !important; } /* 주말은 연한 핑크 */
+.holiday-text { color: red; font-weight: bold; font-size: 11px; }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-    table-layout: auto; /* 브라우저가 최적의 비율로 칸을 배분 */
-}
+/* 클릭 셀 디자인 */
+.at-cell { cursor: pointer; transition: 0.2s; background: #fff; }
+.at-cell:hover { background: #f0f0f0; }
 
-th, td {
-    border: 1px solid #dee2e6;
-    padding: 8px 4px;
-    text-align: center;
-    font-size: 13px;
-    min-width: 35px; /* 날짜 칸 최소 너비 */
-}
+/* 선택된 상태 색상 */
+.status-연차 { background: #ffcccc !important; font-weight: bold; }
+.status-반차 { background: #fffac2 !important; font-size: 11px; }
+.status-반반차 { background: #e2fce2 !important; font-size: 10px; }
 
-thead th {
-    background-color: #e9ecef;
-    font-weight: bold;
-}
-
-tbody tr:hover {
-    background-color: #f1f3f5;
-}
-
-.attendance-cell {
-    cursor: pointer;
-}
-
-tfoot td {
-    background-color: #f8f9fa;
-    font-weight: bold;
-}
+/* 하단 요약 스타일 */
+tfoot td { background: #fafafa; font-weight: bold; color: #333; }
+.footer-label { background: #eee !important; }
