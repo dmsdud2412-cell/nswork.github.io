@@ -7,41 +7,60 @@ let lastFetchedAttendance = [];
 
 window.onload = () => { renderMonthPicker(); loadAllData(); };
 
+// 2026년 공휴일 명칭
 function getHolidays(month) {
-    const data = { 1: { 1: "신정" }, 2: { 16: "설날", 17: "설날", 18: "설날" }, 3: { 1: "삼일절" } };
+    const data = { 
+        1: { 1: "신정" }, 
+        2: { 16: "설날", 17: "설날", 18: "설날" }, 
+        3: { 1: "삼일절", 2: "대체휴무" },
+        5: { 5: "어린이날", 24: "석가탄신일" },
+        10: { 3: "개천절", 5: "추석", 6: "추석", 7: "추석", 8: "대체휴무", 9: "한글날" },
+        12: { 25: "성탄절" }
+    };
     return data[month] || {};
 }
 
 function renderTable(attendance) {
-    const headerRow = document.getElementById('row-header-combined');
+    const dateRow = document.getElementById('row-dates');
+    const weekRow = document.getElementById('row-weeks');
     const tbody = document.getElementById('attendance-body');
     const vRow = document.getElementById('row-vacation');
     const wRow = document.getElementById('row-working');
 
-    headerRow.innerHTML = ''; tbody.innerHTML = '';
+    dateRow.innerHTML = ''; weekRow.innerHTML = ''; tbody.innerHTML = '';
     while(vRow.cells.length > 1) vRow.deleteCell(1);
     while(wRow.cells.length > 1) wRow.deleteCell(1);
 
     const holidayInfo = getHolidays(currentMonth);
     const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
 
-    // 헤더 생성: 숫자와 요일을 한 칸에 수직으로 넣거나, 구조를 맞춰 31칸 생성
     for (let d = 1; d <= 31; d++) {
         const dateObj = new Date(2026, currentMonth - 1, d);
         const isExist = dateObj.getMonth() === currentMonth - 1;
         
-        const th = document.createElement('th');
-        th.className = 'col-day';
+        const thD = document.createElement('th');
+        const thW = document.createElement('th');
+        thD.className = 'col-day';
+        thW.className = 'col-day';
         
         if (isExist) {
             const dayIdx = dateObj.getDay();
             const isRedDay = (dayIdx === 0 || dayIdx === 6 || holidayInfo[d]);
-            // 1칸 일자, 2칸 요일/신정 표시 (내부에 줄바꿈 사용)
-            th.innerHTML = `${d}<br><span style="font-size:10px;">${holidayInfo[d] || weekDays[dayIdx]}</span>`;
-            if(isRedDay) th.classList.add('txt-red');
+            
+            // 1단: 숫자
+            thD.innerText = d;
+            // 2단: 요일 / 3단: 공휴일명 (수직 배치)
+            thW.innerHTML = `${weekDays[dayIdx]}<br><span style="font-size:9px; font-weight:normal;">${holidayInfo[d] || ''}</span>`;
+            
+            if(isRedDay) {
+                thD.classList.add('txt-red');
+                thW.classList.add('txt-red');
+            }
         }
-        headerRow.appendChild(th);
+        dateRow.appendChild(thD);
+        weekRow.appendChild(thW);
         
+        // 하단 인원 행 칸 생성 (음영 없음)
         vRow.insertCell(-1).innerText = '0';
         wRow.insertCell(-1).innerText = '0';
     }
@@ -72,7 +91,7 @@ function renderTable(attendance) {
     });
 }
 
-// 나머지 탭 전환, 월 선택, 로드 함수는 이전과 동일
+// 월 버튼 및 기타 함수
 function renderMonthPicker() {
     const container = document.getElementById('month-picker');
     container.innerHTML = '';
@@ -80,7 +99,7 @@ function renderMonthPicker() {
         const btn = document.createElement('button');
         btn.innerText = m + '월';
         btn.className = `month-btn ${m === currentMonth ? 'active' : ''}`;
-        btn.style.cssText = "padding:5px 10px; cursor:pointer; border:1px solid #ddd; background:white; border-radius:4px;";
+        btn.style.cssText = "padding:5px 10px; cursor:pointer; border:1px solid #ddd; background:white; border-radius:4px; font-size:12px;";
         if(m === currentMonth) { btn.style.background = "#d32f2f"; btn.style.color = "white"; }
         btn.onclick = () => { currentMonth = m; renderMonthPicker(); renderTable(lastFetchedAttendance); };
         container.appendChild(btn);
