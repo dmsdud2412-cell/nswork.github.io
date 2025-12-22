@@ -1,12 +1,30 @@
-/* --- 기존 디자인 그대로 유지 --- */
+/* --- 디자인 불변 --- */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Malgun Gothic', sans-serif; background: #f4f7f9; padding: 20px; }
 .container { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; }
 
-table { width: 100%; border-collapse: collapse; table-layout: fixed; border: 2px solid #444; min-width: 1100px; }
+/* 틀 고정을 위한 Wrapper 설정 */
+.table-wrapper {
+    max-height: 75vh; /* 화면 높이에 맞춰 조절 가능 */
+    overflow: auto;
+    border: 1px solid #444;
+}
+
+table { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; min-width: 1300px; }
 th, td { border: 1px solid #bbb; text-align: center; height: 38px; }
 
-thead th { background: #f8f9fa; font-weight: bold; font-size: 13px; }
+/* --- 엑셀 틀 고정 (Sticky) --- */
+thead th { 
+    position: sticky; 
+    z-index: 20; 
+    background: #f8f9fa; 
+    outline: 0.5px solid #bbb; /* 테두리 보존 */
+}
+thead tr:nth-child(1) th { top: 0; }
+thead tr:nth-child(2) th { top: 38px; }
+thead tr:nth-child(3) th { top: 76px; }
+
+/* 고정된 헤더 내 특수 배경색 유지 */
 .usage-header { background: #e3f2fd !important; color: #1976d2; }
 .usage-cell { background: #f1f8ff; font-size: 11px; }
 .weekend { background: #fff0f0 !important; }
@@ -19,30 +37,20 @@ tbody td:nth-child(3), tbody td:nth-child(4), tbody td:nth-child(5), tbody td:nt
 .at-cell { cursor: pointer; transition: 0.2s; background: #fff; font-size: 12px; }
 .at-cell:hover { background: #f0f0f0; }
 
-/* 휴가와 연차 색상 통일 */
 .status-휴가, .status-연차 { background: #ffcccc !important; font-weight: bold; }
 .status-반차 { background: #fffac2 !important; font-size: 11px; }
 .status-반반차 { background: #e2fce2 !important; font-size: 9px !important; letter-spacing: -1px; font-weight: bold; }
 
-tfoot td { background: #fafafa; font-weight: bold; font-size: 13px; }
+tfoot td { background: #fafafa; font-weight: bold; font-size: 13px; position: sticky; bottom: 0; z-index: 10; outline: 0.5px solid #bbb; }
 .footer-label { background: #eee !important; }
 
-/* --- 탭 버튼 디자인 추가 (기존 디자인 무드 유지) --- */
+/* 탭 디자인 */
 .tab-menu { display: flex; gap: 2px; margin-bottom: -2px; }
 .tab-btn {
-    padding: 10px 30px;
-    border: 1px solid #bbb;
-    background: #eee;
-    cursor: pointer;
-    font-weight: bold;
-    border-radius: 8px 8px 0 0;
-    font-size: 14px;
-    transition: 0.2s;
+    padding: 10px 30px; border: 1px solid #bbb; background: #eee; cursor: pointer;
+    font-weight: bold; border-radius: 8px 8px 0 0; font-size: 14px;
 }
 .tab-btn.active {
-    background: white;
-    border-bottom: 2px solid white;
-    border-top: 3px solid #1976d2;
-    color: #1976d2;
-    z-index: 10;
+    background: white; border-bottom: 2px solid white; border-top: 3px solid #1976d2;
+    color: #1976d2; z-index: 10;
 }
