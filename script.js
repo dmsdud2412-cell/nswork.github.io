@@ -1,6 +1,6 @@
 const GAN_URL = "https://script.google.com/macros/s/AKfycby42R57TUGVePyKRxfsFqeLuinCy0rxIVZudX2-Z1tERUpYCxJWw50EU0ZsqIrVGlWy/exec";
 
-// URL 지점 필터 (값이 없으면 전체 노출)
+// URL 지점 필터 처리 (없으면 전체 노출)
 const urlParams = new URLSearchParams(window.location.search);
 const myBranch = urlParams.get('branch');
 
@@ -11,7 +11,7 @@ let lastFetchedAttendance = [];
 
 window.onload = () => { renderMonthPicker(); loadAllData(); addExcelButton(); };
 
-// 엑셀 저장 버튼 (디자인 유지)
+// [기능] 엑셀 저장 버튼 (기존 디자인을 해치지 않게 월 선택바 옆에 배치)
 function addExcelButton() {
     if (document.getElementById('btn-excel')) return;
     const container = document.getElementById('month-picker');
@@ -36,6 +36,7 @@ function downloadExcel() {
     link.click();
 }
 
+// 2026년 공휴일 데이터
 function getHolidays(month) {
     const data = { 
         1: { 1: "신정" }, 2: { 16: "설날", 17: "설날", 18: "설날" }, 
@@ -47,7 +48,7 @@ function getHolidays(month) {
     return data[month] || {};
 }
 
-// 명단 로드 (이 부분이 이전의 잘 되던 로직입니다)
+// [복구] 명단 로드 로직 (필터가 있어도 명단이 사라지지 않게 안전 처리)
 async function loadAllData() {
     try {
         const response = await fetch(GAN_URL);
@@ -57,7 +58,7 @@ async function loadAllData() {
         if(res.config) {
             res.config.slice(1).forEach(row => {
                 const bName = row[1] || "";
-                // 필터링: myBranch가 있을 때만 비교하고, 없으면 통과
+                // 파라미터가 있을 때만 필터링, 없으면 모두 추가
                 if (myBranch && bName !== myBranch) return; 
 
                 const p = { branch: bName, name: row[2] || "", req: row[3] || 0, unused: row[4] || 0 };
@@ -71,6 +72,12 @@ async function loadAllData() {
 }
 
 function renderTable(attendance) {
+    // [기능 추가] 상단 제목(n월 근태 현황) 자동 업데이트
+    const titleEl = document.querySelector('h2') || document.getElementById('table-title');
+    if (titleEl) {
+        titleEl.innerText = `${currentMonth}월 근태 현황`;
+    }
+
     const tbody = document.getElementById('attendance-body');
     const dateRow = document.getElementById('row-dates');
     const weekRow = document.getElementById('row-weeks');
@@ -157,7 +164,7 @@ function showDropdown(cell) {
         cell.innerText = newStatus;
         applyStatusColor(cell, newStatus);
         updateCounts(); 
-        // [저장 기능 다시 추가]
+        // [기능] 저장 전송
         fetch(GAN_URL, {
             method: "POST", mode: "no-cors",
             body: JSON.stringify({ month: parseInt(currentMonth), type: currentType, name: name, day: parseInt(day), status: newStatus })
@@ -177,9 +184,11 @@ function updateCounts() {
             const txt = c.innerText;
             const day = parseInt(c.getAttribute('data-day'));
             if(!txt) return;
+            // 연차 차감 수식 (반반차 0.25 적용)
             if (txt === '연차') used += 1;
             else if (txt === '반반차') used += 0.25;
             else if (txt.includes('반차')) used += 0.5;
+            // 하단 카운트 (항목 있으면 1명)
             if (['연차', '오전반차', '오후반차', '반반차', '휴가', '출장'].includes(txt)) dailyVacationCount[day] += 1;
         });
         const unused = parseFloat(row.cells[3].innerText) || 0;
