@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const cells = document.querySelectorAll('.at-cell');
-    const statuses = ['', '연차', '오전반차', '오후반차', '반반차'];
+    const statuses = ['', '휴가', '연차', '오전반차', '오후반차', '반반차', '출장'];
 
     cells.forEach(cell => {
         cell.addEventListener('click', () => {
@@ -76,3 +76,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
+
