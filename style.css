@@ -37,12 +37,15 @@ tbody td:nth-child(6) {
     color: #333;
 }
 
-/* 5. 클릭 셀 및 상태별 색상 (휴가 색상 추가) */
+/* 5. 클릭 셀 및 상태별 색상 (휴가 색상을 연차와 동일하게 적용) */
 .at-cell { cursor: pointer; transition: 0.2s; background: #fff; font-size: 12px; }
 .at-cell:hover { background: #f0f0f0; }
 
-/* 휴가와 연차를 동일한 분홍색으로 설정 */
-.status-휴가, .status-연차 { background: #ffcccc !important; font-weight: bold; }
+.status-휴가, .status-연차 { 
+    background: #ffcccc !important; 
+    font-weight: bold; 
+}
+
 .status-반차 { background: #fffac2 !important; font-size: 11px; }
 .status-반반차 { 
     background: #e2fce2 !important; 
