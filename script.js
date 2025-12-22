@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const cells = document.querySelectorAll('.at-cell');
+    // 요청하신 순서: 빈칸, 휴가, 연차, 오전반차, 오후반차, 반반차, 출장
     const statuses = ['', '휴가', '연차', '오전반차', '오후반차', '반반차', '출장'];
 
     cells.forEach(cell => {
@@ -10,9 +11,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             cell.innerText = nextStatus;
 
-            // 디자인용 클래스는 그대로 유지
-            cell.classList.remove('status-연차', 'status-반차', 'status-반반차');
-            if (nextStatus === '연차') cell.classList.add('status-연차');
+            // 기존 색상 클래스 제거
+            cell.classList.remove('status-휴가', 'status-연차', 'status-반차', 'status-반반차');
+            
+            // 색상 부여 (휴가와 연차는 동일한 CSS 클래스 적용 가능하도록 설정)
+            if (nextStatus === '휴가') cell.classList.add('status-휴가');
+            else if (nextStatus === '연차') cell.classList.add('status-연차');
             else if (nextStatus.includes('반차') && nextStatus !== '반반차') cell.classList.add('status-반차');
             else if (nextStatus === '반반차') cell.classList.add('status-반반차');
 
@@ -30,9 +34,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const allCells = row.querySelectorAll('.at-cell');
             let usedSum = 0;
 
-            // 화면상 휴가 합계 (연차:1, 반차:0.5, 반반차:0.25)
             allCells.forEach(c => {
                 const txt = c.innerText;
+                // 계산 점수: 연차만 1점, 반차 0.5점, 반반차 0.25점 (휴가/출장은 0점 유지)
                 if (txt === '연차') usedSum += 1;
                 else if (txt.includes('반차') && txt !== '반반차') usedSum += 0.5;
                 else if (txt === '반반차') usedSum += 0.25;
@@ -41,9 +45,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const requiredVal = parseFloat(document.getElementById(`required-${name}`).innerText) || 0;
             const unusedVal = parseFloat(document.getElementById(`unused-${name}`).innerText) || 0;
 
-            // [수정된 수식 적용]
-            const remainingVal = unusedVal - usedSum; // 잔여 = 미사용 - 사용량
-            const usageRate = requiredVal > 0 ? ((requiredVal - remainingVal) / requiredVal) * 100 : 0; // 사용률 = (필수 - 잔여) / 필수 * 100
+            const remainingVal = unusedVal - usedSum;
+            // 사용률 수식: (필수 - 잔여) / 필수 * 100
+            const usageRate = requiredVal > 0 ? ((requiredVal - remainingVal) / requiredVal) * 100 : 0;
 
             const remainingEl = document.getElementById(`remaining-${name}`);
             const rateEl = document.getElementById(`rate-${name}`);
@@ -52,11 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
             rateEl.innerText = Math.floor(usageRate) + '%';
         });
 
-        // 하단 요약 (디자인 및 위치 동일)
-        updateFooterSummary(rows);
-    }
-
-    function updateFooterSummary(rows) {
+        // 하단 인원 합계 업데이트
         const holidayFooter = document.querySelectorAll('#holiday-row td:not(.footer-label)');
         const workFooter = document.querySelectorAll('#work-row td:not(.footer-label)');
         
@@ -76,4 +76,3 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
-
