@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>2026 근태 관리 시스템</title>
     <style>
-        /* 사용자님의 완벽한 디자인 스타일 */
+        /* 사용자님의 완벽한 디자인 스타일 유지 */
         body { font-family: 'Pretendard', sans-serif; margin: 20px; background-color: #f4f7f9; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .tabs { display: flex; gap: 5px; }
@@ -16,14 +16,22 @@
         th, td { border: 1px solid #eee; padding: 8px; text-align: center; }
         th { background: #f8f9fa; }
 
-        /* 사용자님이 정하신 음영 디자인 */
-        .weekend { background-color: #ffebee !important; color: #d32f2f; }
+        /* 빨간색 음영 디자인 (주말 및 공휴일) */
+        .weekend { background-color: #ffebee !important; color: #d32f2f !important; font-weight: bold; }
+        
+        /* 상태별 색상 */
         .status-연차 { background-color: #e3f2fd; color: #1976d2; font-weight: bold; }
         .status-반차 { background-color: #f1f8e9; color: #388e3c; }
         .at-cell { cursor: pointer; }
+
+        /* 월 선택 버튼 디자인 */
+        .month-picker { text-align: center; margin-bottom: 20px; }
+        .month-btn { padding: 8px 15px; margin: 2px; border: 1px solid #ddd; background: white; cursor: pointer; border-radius: 4px; }
+        .month-btn.active { background: #d32f2f; color: white; border-color: #d32f2f; }
     </style>
 </head>
 <body>
+
     <div class="header">
         <h1>🗓️ 2026 근태 관리</h1>
         <div class="tabs">
@@ -32,37 +40,37 @@
         </div>
     </div>
 
+    <div id="month-picker-container" class="month-picker"></div>
+
     <div class="table-container">
         <table>
             <thead>
                 <tr>
                     <th rowspan="2" style="width:100px;">지점</th>
                     <th rowspan="2" style="width:100px;">성명</th>
-                    <th rowspan="2" style="width:50px;">연차<br>부여</th>
-                    <th rowspan="2" style="width:50px;">전년<br>미사용</th>
-                    <th rowspan="2" style="width:50px;">남은<br>연차</th>
-                    <th rowspan="2" style="width:60px;">소진율</th>
-                    <th colspan="31">근태 현황</th>
+                    <th rowspan="2" style="width:60px;">연차<br>부여</th>
+                    <th rowspan="2" style="width:60px;">전년<br>미사용</th>
+                    <th rowspan="2" style="width:60px;">남은<br>연차</th>
+                    <th rowspan="2" style="width:70px;">소진율</th>
+                    <th colspan="31" id="table-month-title">1월 근태 현황</th>
                 </tr>
-                <tr>
-                    <script>for(let i=1; i<=31; i++) document.write(`<th style="width:35px;">${i}</th>`);</script>
-                </tr>
+                <tr id="date-header">
+                    </tr>
             </thead>
             <tbody id="attendance-body">
-                <tr><td colspan="37" style="text-align:center; padding:20px;">데이터 로딩 중...</td></tr>
+                <tr><td colspan="37" style="text-align:center; padding:20px;">데이터를 불러오는 중입니다...</td></tr>
             </tbody>
             <tfoot>
                 <tr id="holiday-row" style="background:#f1f3f5; font-weight:bold;">
                     <td colspan="6" style="text-align:right; padding-right:15px;">휴가 인원</td>
-                    <script>for(let i=1; i<=31; i++) document.write(`<td>0</td>`);</script>
-                </tr>
+                    </tr>
                 <tr id="work-row" style="background:#f1f3f5; font-weight:bold;">
                     <td colspan="6" style="text-align:right; padding-right:15px;">근무 인원</td>
-                    <script>for(let i=1; i<=31; i++) document.write(`<td>0</td>`);</script>
-                </tr>
+                    </tr>
             </tfoot>
         </table>
     </div>
+
     <script src="script.js"></script>
 </body>
 </html>
