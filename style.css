@@ -1,26 +1,41 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Malgun Gothic', sans-serif; background: #f4f7f9; padding: 20px; }
 .container { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow-x: auto; }
-h1 { text-align: center; color: #333; margin-bottom: 20px; }
+h1 { text-align: center; color: #333; margin-bottom: 25px; }
 
-table { width: 100%; border-collapse: collapse; min-width: 1400px; border: 2px solid #444; }
-th, td { border: 1px solid #bbb; text-align: center; height: 38px; font-size: 13px; }
+table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    table-layout: fixed; /* 칸 너비 절대 고정 */
+    min-width: 1500px; 
+    border: 2px solid #444; 
+}
 
-/* 헤더 색상 센스 */
-thead th { background: #f8f9fa; font-weight: bold; }
+th, td { border: 1px solid #bbb; text-align: center; height: 38px; overflow: hidden; }
+
+/* 헤더 스타일 */
+thead th { background: #f8f9fa; font-weight: bold; font-size: 13px; }
 .usage-header { background: #e3f2fd !important; color: #1976d2; }
 .usage-cell { background: #f1f8ff; font-size: 11px; }
-.weekend { background: #fff0f0 !important; } /* 주말은 연한 핑크 */
-.holiday-text { color: red; font-weight: bold; font-size: 11px; }
+.weekend { background: #fff0f0 !important; }
+.holiday-text { color: red; font-size: 11px; font-weight: bold; }
 
-/* 클릭 셀 디자인 */
-.at-cell { cursor: pointer; transition: 0.2s; background: #fff; }
+/* 클릭 셀 기본 설정 */
+.at-cell { cursor: pointer; transition: 0.2s; background: #fff; font-size: 12px; white-space: nowrap; }
 .at-cell:hover { background: #f0f0f0; }
 
-/* 선택된 상태 색상 */
+/* 상태별 색상 및 폰트 조절 */
 .status-연차 { background: #ffcccc !important; font-weight: bold; }
 .status-반차 { background: #fffac2 !important; font-size: 11px; }
-.status-반반차 { background: #e2fce2 !important; font-size: 10px; }
 
-/* 하단 요약 스타일 */
-tfoot td { background: #fafafa; font-weight: bold; color: #333; }
+/* 반반차: 글자를 작게 해서 칸 너비를 지킴 */
+.status-반반차 { 
+    background: #e2fce2 !important; 
+    font-size: 9px !important; 
+    letter-spacing: -1px; 
+    font-weight: bold;
+}
+
+/* 하단 요약 */
+tfoot td { background: #fafafa; font-weight: bold; font-size: 13px; }
 .footer-label { background: #eee !important; }
