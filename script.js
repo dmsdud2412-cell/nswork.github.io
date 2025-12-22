@@ -7,16 +7,13 @@ let masterData = { manager: [], staff: [] };
 let lastFetchedAttendance = []; 
 
 window.onload = function() {
-    renderMonthPicker();
+    createMonthPicker(); 
     loadAllData();
 };
 
-// 2026년 공휴일 (1월 1일 신정 포함)
+// 2026년 공휴일 및 신정(1/1)
 function getPublicHolidays(month) {
-    const holidays = { 
-        1:[1], 2:[16,17,18], 3:[1,2], 5:[5,24,25], 
-        6:[6], 8:[15,17], 9:[24,25,26], 10:[3,5,9], 12:[25] 
-    };
+    const holidays = { 1:[1], 2:[16,17,18], 3:[1,2], 5:[5,24,25], 6:[6], 8:[15,17], 9:[24,25,26], 10:[3,5,9], 12:[25] };
     return holidays[month] || [];
 }
 
@@ -31,26 +28,16 @@ function getWeekends(year, month) {
     return weekends;
 }
 
-// 월 선택 버튼 생성
-function renderMonthPicker() {
-    const container = document.getElementById('month-picker-container');
-    if (!container) return;
-    container.innerHTML = '';
-    for (let m = 1; m <= 12; m++) {
-        const btn = document.createElement('button');
-        btn.innerText = `${m}월`;
-        btn.className = `month-btn ${m === currentMonth ? 'active' : ''}`;
-        btn.onclick = () => {
-            currentMonth = m;
-            renderMonthPicker();
-            renderTable(lastFetchedAttendance);
-        };
-        container.appendChild(btn);
-    }
+// 탭 전환
+function switchTab(type) {
+    currentType = type;
+    document.querySelectorAll('.tabs .tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(`btn-${type}`).classList.add('active');
+    renderTable(lastFetchedAttendance);
 }
 
+// 데이터 로드
 async function loadAllData() {
-    const tbody = document.getElementById('attendance-body');
     try {
         const response = await fetch(GAN_URL);
         const res = await response.json();
@@ -63,10 +50,7 @@ async function loadAllData() {
         });
         lastFetchedAttendance = res.attendance;
         renderTable(lastFetchedAttendance);
-    } catch (e) { 
-        console.error("로드 실패");
-        if(tbody) tbody.innerHTML = '<tr><td colspan="37" style="text-align:center; color:red;">데이터 로드 실패</td></tr>';
-    }
+    } catch (e) { console.error("로드 실패"); }
 }
 
 function renderTable(attendance) {
@@ -74,30 +58,29 @@ function renderTable(attendance) {
     const dateHeader = document.getElementById('date-header');
     const holidayRow = document.getElementById('holiday-row');
     const workRow = document.getElementById('work-row');
-    if(!tbody || !dateHeader) return;
     
-    document.getElementById('table-month-title').innerText = `${currentMonth}월 근태 현황`;
-    
+    // 헤더 및 합계행 초기화 (디자인 보존)
     dateHeader.innerHTML = '';
-    const hRowLabel = holidayRow.cells[0]; holidayRow.innerHTML = ''; holidayRow.appendChild(hRowLabel);
-    const wRowLabel = workRow.cells[0]; workRow.innerHTML = ''; workRow.appendChild(wRowLabel);
+    const hLabel = holidayRow.cells[0]; holidayRow.innerHTML = ''; holidayRow.appendChild(hLabel);
+    const wLabel = workRow.cells[0]; workRow.innerHTML = ''; workRow.appendChild(wLabel);
 
     const weekends = getWeekends(currentYear, currentMonth);
     const holidays = getPublicHolidays(currentMonth);
     const allHolidays = [...new Set([...weekends, ...holidays])];
 
+    // 날짜 및 음영 생성
     for(let i=1; i<=31; i++) {
         const th = document.createElement('th');
         th.innerText = i;
-        if (allHolidays.includes(i)) th.className = 'weekend';
+        if(allHolidays.includes(i)) th.className = 'weekend';
         dateHeader.appendChild(th);
-        
+
         const tdH = document.createElement('td');
-        if (allHolidays.includes(i)) tdH.className = 'weekend';
+        if(allHolidays.includes(i)) tdH.className = 'weekend';
         holidayRow.appendChild(tdH);
 
         const tdW = document.createElement('td');
-        if (allHolidays.includes(i)) tdW.className = 'weekend';
+        if(allHolidays.includes(i)) tdW.className = 'weekend';
         workRow.appendChild(tdW);
     }
 
@@ -108,10 +91,10 @@ function renderTable(attendance) {
         const tr = document.createElement('tr');
         tr.setAttribute('data-person', person.name);
         let rowHtml = `<td>${person.branch}</td><td>${person.name}</td>
-            <td id="req-${person.name}">${person.required}</td>
-            <td id="un-${person.name}">${person.unused}</td>
-            <td id="rem-${person.name}">${person.unused}</td>
-            <td id="rate-${person.name}">0%</td>`;
+            <td class="num-cell" id="req-${person.name}">${person.required}</td>
+            <td class="num-cell" id="un-${person.name}">${person.unused}</td>
+            <td class="num-cell" id="rem-${person.name}">${person.unused}</td>
+            <td class="num-cell" id="rate-${person.name}">0%</td>`;
         
         for (let i = 1; i <= 31; i++) {
             let status = "";
@@ -132,13 +115,31 @@ function getStatusClass(status) {
     return '';
 }
 
-function switchTab(type) {
-    currentType = type;
-    document.querySelectorAll('.tabs .tab-btn').forEach(btn => btn.classList.remove('active'));
-    document.getElementById(`btn-${type}`).classList.add('active');
-    renderTable(lastFetchedAttendance);
+// 월 선택기 생성 (기능만 추가)
+function createMonthPicker() {
+    const header = document.querySelector('.header');
+    const div = document.createElement('div');
+    div.style.textAlign = 'center';
+    div.style.marginBottom = '15px';
+    for (let m = 1; m <= 12; m++) {
+        const btn = document.createElement('button');
+        btn.innerText = m + '월';
+        btn.className = 'tab-btn';
+        btn.style.margin = '2px';
+        if(m === currentMonth) btn.classList.add('active');
+        btn.onclick = function() {
+            currentMonth = m;
+            document.querySelectorAll('.month-picker-container button').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            renderTable(lastFetchedAttendance);
+        };
+        div.appendChild(btn);
+    }
+    div.className = 'month-picker-container';
+    header.after(div);
 }
 
+// 드롭다운 및 계산 함수는 디자인에 영향 주지 않으므로 유지
 function showDropdown(cell) {
     if (cell.querySelector('select')) return;
     const currentStatus = cell.innerText;
@@ -147,13 +148,11 @@ function showDropdown(cell) {
     select.style.cssText = "width:100%; border:none; background:transparent; font-size:12px; text-align:center;";
     statuses.forEach(s => {
         const opt = document.createElement('option');
-        opt.value = s;
-        opt.innerText = s === '' ? '-' : s;
+        opt.value = s; opt.innerText = s === '' ? '-' : s;
         if(s === currentStatus) opt.selected = true;
         select.appendChild(opt);
     });
-    cell.innerText = '';
-    cell.appendChild(select);
+    cell.innerText = ''; cell.appendChild(select);
     select.focus();
     select.onchange = async function() {
         const newStatus = this.value;
@@ -182,10 +181,9 @@ function updateCounts() {
         const reqEl = document.getElementById(`req-${name}`);
         const unEl = document.getElementById(`un-${name}`);
         if(reqEl && unEl) {
-            const reqVal = parseFloat(reqEl.innerText) || 0;
-            const unVal = parseFloat(unEl.innerText) || 0;
-            const rem = unVal - used;
+            const rem = parseFloat(unEl.innerText) - used;
             document.getElementById(`rem-${name}`).innerText = rem;
+            const reqVal = parseFloat(reqEl.innerText);
             const rate = reqVal > 0 ? ((reqVal - rem) / reqVal) * 100 : 0;
             document.getElementById(`rate-${name}`).innerText = Math.floor(rate) + '%';
         }
