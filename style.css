@@ -1,4 +1,31 @@
-/* 기본 디자인 유지 */
+const GAN_URL = "https://script.google.com/macros/s/AKfycby42R57TUGVePyKRxfsFqeLuinCy0rxIVZudX2-Z1tERUpYCxJWw50EU0ZsqIrVGlWy/exec";
+let currentType = 'manager'; let currentMonth = 1; let masterData = { manager: [], staff: [] }; let lastFetchedAttendance = [];
+
+window.onload = () => { renderMonthPicker(); loadAllData(); };
+
+async function loadAllData() {
+    try {
+        const response = await fetch(GAN_URL);
+        const res = await response.json();
+        masterData.manager = []; masterData.staff = [];
+        if(res.config) {
+            const targetCol = 4 + (currentMonth - 1); 
+            res.config.slice(1).forEach(row => {
+                const p = { branch: row[1], name: row[2], req: row[3], unused: row[targetCol] || 0 };
+                if (row[0] === 'manager') masterData.manager.push(p);
+                else masterData.staff.push(p);
+            });
+        }
+        lastFetchedAttendance = res.attendance || [];
+        renderTable(lastFetchedAttendance);
+    } catch (e) { console.error("로드 실패"); }
+}
+
+function renderTable(attendance) {
+    document.getElementById('month-title').innerText = `${currentMonth}월 근태 현황`;
+    const tbody = document.getElementById('attendance-body');
+    const dateRow = document.getElementById('row-dates');
+    const weekRow = document/* 기본 디자인 유지 */
 body { 
     font-family: 'Pretendard', sans-serif; 
     margin: 10px; 
@@ -53,3 +80,4 @@ thead th { background-color: #fcfcfc; font-weight: bold; }
 }
 
 .footer-row td { background-color: #f8f9fa !important; color: #333 !important; font-weight: bold; }
+
