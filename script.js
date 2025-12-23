@@ -1,8 +1,5 @@
 const GAN_URL = "https://script.google.com/macros/s/AKfycby42R57TUGVePyKRxfsFqeLuinCy0rxIVZudX2-Z1tERUpYCxJWw50EU0ZsqIrVGlWy/exec";
-let currentType = 'manager';
-let currentMonth = 1;
-let masterData = { manager: [], staff: [] };
-let lastFetchedAttendance = [];
+let currentType = 'manager'; let currentMonth = 1; let masterData = { manager: [], staff: [] }; let lastFetchedAttendance = [];
 
 window.onload = () => { renderMonthPicker(); loadAllData(); };
 
@@ -40,7 +37,6 @@ function renderTable(attendance) {
     const holidayInfo = { 1: { 1: "신정" }, 2: { 16: "설날", 17: "설날", 18: "설날" }, 3: { 1: "삼일절" }, 5: { 5: "어린이날", 24: "석가탄신일" }, 6: { 6: "현충일" }, 8: { 15: "광복절" }, 10: { 3: "개천절", 9: "한글날" }, 12: { 25: "성탄절" } }[currentMonth] || {};
     const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
 
-    // 1일부터 31일까지 칸 생성
     for (let d = 1; d <= 31; d++) {
         const dateObj = new Date(2026, currentMonth - 1, d);
         const isExist = dateObj.getMonth() === currentMonth - 1;
@@ -55,11 +51,9 @@ function renderTable(attendance) {
             if(dayIdx === 0 || dayIdx === 6 || hName !== "") [thD, thW, thH].forEach(el => el.classList.add('txt-red'));
         }
         dateRow.appendChild(thD); weekRow.appendChild(thW); holidayRow.appendChild(thH);
-        vRow.insertCell(-1).id = `vac-count-${d}`;
-        wRow.insertCell(-1).id = `work-count-${d}`;
+        vRow.insertCell(-1).id = `vac-count-${d}`; wRow.insertCell(-1).id = `work-count-${d}`;
     }
 
-    // 비고 헤더 (날짜 칸보다 넓게 설정됨)
     const noteTh = document.createElement('th');
     noteTh.innerText = "비고"; noteTh.className = 'col-note';
     dateRow.appendChild(noteTh);
@@ -115,8 +109,7 @@ function showDropdown(cell, day, name) {
     });
     select.onchange = function() {
         cell.innerText = this.value; applyStatusColor(cell, this.value);
-        saveData(currentMonth, currentType, name, day, this.value);
-        updateCounts();
+        saveData(currentMonth, currentType, name, day, this.value); updateCounts();
     };
     cell.innerHTML = ''; cell.appendChild(select); select.focus();
 }
@@ -134,7 +127,7 @@ function updateCounts() {
         row.querySelectorAll('.at-cell').forEach(c => {
             const txt = c.innerText; if(!txt) return;
             if (txt === '연차') used += 1; else if (txt === '반반차') used += 0.25; else if (txt.includes('반차')) used += 0.5;
-            if (['연차', '오전반차', '오후반차', '반반차', '휴가', '출장'].includes(txt)) dailyVacation[parseInt(c.getAttribute('data-day'))] += 1;
+            dailyVacation[parseInt(c.getAttribute('data-day'))] += 1;
         });
         const base = parseFloat(row.cells[3].innerText) || 0;
         const rem = base - used;
