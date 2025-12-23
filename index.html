@@ -14,24 +14,24 @@
             padding: 10px; 
             border-radius: 8px; 
             box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
-            overflow: hidden; /* 스크롤바 제거 */
+            overflow: hidden; 
         }
 
         table { 
             width: 100%; 
             border-collapse: collapse; 
-            table-layout: fixed; /* 칸 너비 강제 고정 */
+            table-layout: fixed; /* 고정 레이아웃 유지 */
             font-size: 11px;
         }
 
         th, td { border: 1px solid #ededed; padding: 2px 0; text-align: center; height: 22px; }
         thead th { background-color: #fcfcfc; font-weight: bold; }
 
-        /* 각 컬럼 너비 재조정 (한 화면에 꽉 차게) */
-        .col-info { width: 5.5%; } 
-        .col-stat { width: 3.5%; } 
-        .col-day { width: 2.3%; } /* 일자 칸 너비를 넓힘 */
-        .col-note { width: 10%; } /* 비고 칸 너비를 절반으로 축소 */
+        /* [너비 조정] 비고란을 30%로 설정하고 나머지를 재배분 */
+        .col-info { width: 5%; } 
+        .col-stat { width: 3%; } 
+        .col-day { width: 1.7%; } /* 1~31일 칸 */
+        .col-note { width: 30%; } /* 비고란 30% 확보 */
 
         .txt-red { color: #d32f2f !important; font-weight: bold; }
         .bg-pink { background-color: #fff0f0 !important; }
