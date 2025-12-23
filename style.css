@@ -1,58 +1,60 @@
-<style>
-    /* 기본 레이아웃 설정 */
-    body { font-family: 'Pretendard', sans-serif; margin: 10px; background-color: #f8f9fa; }
-    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-    
-    /* 지점장/직원 탭 스타일 */
-    .tabs button { padding: 8px 20px; border: 1px solid #ddd; background: #eee; cursor: pointer; border-radius: 5px; font-weight: bold; }
-    .tabs button.active { background: #d32f2f; color: white; border-color: #d32f2f; }
-    
-    /* 테이블 컨테이너 및 테이블 설정 */
-    .table-container { 
-        background: white; 
-        padding: 10px; 
-        border-radius: 8px; 
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
-        overflow: hidden; /* 가로 스크롤 제거 */
-    }
+/* 기본 폰트 및 배경 */
+body { font-family: 'Pretendard', sans-serif; margin: 10px; background-color: #f8f9fa; }
 
-    table { 
-        width: 100%; 
-        border-collapse: collapse; 
-        table-layout: fixed; /* 모든 칸 너비를 지정한 %로 강제 고정 */
-        font-size: 11px;
-    }
+/* 상단 헤더 및 버튼 스타일 */
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.tabs button { padding: 8px 20px; border: 1px solid #ddd; background: #eee; cursor: pointer; border-radius: 5px; font-weight: bold; }
+.tabs button.active { background: #d32f2f; color: white; border-color: #d32f2f; }
 
-    th, td { border: 1px solid #ededed; padding: 2px 0; text-align: center; height: 22px; }
-    thead th { background-color: #fcfcfc; font-weight: bold; }
+.month-container { display: flex; justify-content: center; gap: 4px; margin-bottom: 15px; align-items: center; }
+.month-btn { padding: 5px 10px; border: 1px solid #ccc; background: white; cursor: pointer; border-radius: 3px; }
 
-    /* -----------------------------------------------------------
-       [관리자님 요청 반영] 컬럼별 너비 비율 설정 (합계 약 100%)
-    ----------------------------------------------------------- */
-    .col-info { width: 5.5%; }    /* 지점명, 성명 */
-    .col-stat { width: 3.2%; }    /* 필수/미사용/남은연차/소진율 */
-    .col-day  { width: 1.25%; }   /* 1일~31일 (비고란 공간을 위해 간격 축소) */
-    .col-note { width: 45%; }     /* 비고 (30일 칸 위치까지 왼쪽으로 당겨서 대폭 확대) */
+/* 테이블 컨테이너 */
+.table-container { 
+    background: white; 
+    padding: 10px; 
+    border-radius: 8px; 
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
+    overflow-x: auto; 
+}
 
-    /* 주말 및 공휴일 강조색 */
-    .txt-red { color: #d32f2f !important; font-weight: bold; }
-    .bg-pink { background-color: #fff0f0 !important; }
-    
-    /* 근태 입력 셀 효과 */
-    .at-cell { cursor: pointer; transition: background 0.2s; }
-    .at-cell:hover { background-color: #f1f3f5; }
+table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    table-layout: fixed; /* 설정한 % 너비를 강제로 고정 */
+    font-size: 11px;
+}
 
-    /* 하단 통계 행 스타일 */
-    .footer-row td { background-color: #f8f9fa !important; color: #333 !important; font-weight: bold; }
-    
-    /* 비고란 입력창 스타일 (칸에 꽉 차게) */
-    .col-note input {
-        width: 100%;
-        border: none;
-        background: transparent;
-        font-size: 11px;
-        outline: none;
-        font-family: inherit;
-        padding-left: 5px;
-    }
-</style>
+th, td { border: 1px solid #ededed; padding: 2px 0; text-align: center; height: 24px; }
+thead th { background-color: #fcfcfc; font-weight: bold; }
+
+/* -----------------------------------------------------------
+   [너비 비율 설정] 
+   1~31일 칸(.col-day)을 좁게 줄여서 비고란을 30일 옆으로 당겼습니다.
+   비고란(.col-note)은 처음에 보셨던 아주 넓은 크기의 딱 절반(42%)입니다.
+----------------------------------------------------------- */
+.col-info { width: 5.5%; }    /* 지점, 성명 */
+.col-stat { width: 3.2%; }    /* 연차 통계 정보 */
+.col-day  { width: 1.2%; }    /* 1~31일 칸 (좁게 설정하여 비고란 공간 확보) */
+.col-note { width: 42%; }     /* 비고 (30일 옆에서 시작되는 시원한 너비) */
+
+/* 강조 색상 */
+.txt-red { color: #d32f2f !important; font-weight: bold; }
+.bg-pink { background-color: #fff0f0 !important; }
+
+/* 입력 필드 스타일 */
+.at-cell { cursor: pointer; }
+.at-cell:hover { background-color: #f1f3f5; }
+
+.col-note input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-size: 11px;
+    outline: none;
+    padding: 0 8px;
+    box-sizing: border-box;
+    text-align: left;
+}
+
+.footer-row td { background-color: #f8f9fa !important; font-weight: bold; }
