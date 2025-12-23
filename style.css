@@ -1,9 +1,8 @@
-/* 기본 배경 및 폰트 설정 */
 body { 
     font-family: 'Pretendard', sans-serif; 
     margin: 10px; 
     background-color: #f8f9fa; 
-    overflow-x: hidden; /* ★ 노란색 칠하신 바깥쪽 가로 스크롤바 강제 제거 */
+    overflow-x: hidden; /* 바닥 스크롤 제거 */
 }
 
 .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
@@ -12,7 +11,6 @@ body {
 .month-btn { padding: 5px 10px; border: 1px solid #ccc; background: white; cursor: pointer; border-radius: 3px; font-size: 11px; }
 .month-btn.active { background: #d32f2f !important; color: white !important; border: none; }
 
-/* 표 컨테이너: 여기서만 스크롤 발생 */
 .table-container { 
     width: 100%; 
     overflow-x: auto; 
@@ -34,19 +32,16 @@ table {
 th, td { border: 1px solid #ededed; padding: 2px 0; text-align: center; height: 25px; position: relative; }
 thead th { background-color: #fcfcfc; font-weight: bold; }
 
-/* [너비 정밀 세팅] 31일이 한 화면에 다 들어오는 황금 비율 */
-.col-info { width: 80px; }    /* 지점, 성명 */
-.col-stat { width: 45px; }    /* 필수/잔여 연차 등 */
-.col-day  { width: 27px; }    /* 1~31일 날짜 한 칸 */
-
-/* ★ 비고란: 아주 길게 설정하여 스크롤로 밀어서 보게 함 */
-.col-note { width: 450px; } 
+/* 이미지의 가독성을 재현한 너비 세팅 */
+.col-info { width: 80px; }    
+.col-stat { width: 45px; }    
+.col-day  { width: 28px; }    /* 31일이 한 화면에 보이고 비고만 밀려나게 조절 */
+.col-note { width: 400px; }   /* 비고란 너비 확보 */
 
 .txt-red { color: #d32f2f !important; font-weight: bold; }
 .bg-pink { background-color: #fff0f0 !important; }
 .at-cell { cursor: pointer; }
 
-/* 입력창 및 드롭다운 스타일 */
 .at-cell select, .col-note input {
     width: 100%; height: 100%; border: none; background: transparent;
     font-size: 11px; outline: none; box-sizing: border-box; padding: 0 8px;
