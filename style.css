@@ -1,60 +1,36 @@
-/* 기본 폰트 및 배경 */
+/* [어제 디자인 그대로] 전체 폰트 및 배경 */
 body { font-family: 'Pretendard', sans-serif; margin: 10px; background-color: #f8f9fa; }
-
-/* 상단 헤더 및 버튼 스타일 */
 .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+
+/* 탭 및 월 선택 버튼 디자인 */
 .tabs button { padding: 8px 20px; border: 1px solid #ddd; background: #eee; cursor: pointer; border-radius: 5px; font-weight: bold; }
 .tabs button.active { background: #d32f2f; color: white; border-color: #d32f2f; }
+.month-btn { padding: 5px 10px; border: 1px solid #ccc; background: white; cursor: pointer; border-radius: 3px; font-size: 11px; }
+.month-btn.active { background: #d32f2f !important; color: white !important; border: none; }
 
-.month-container { display: flex; justify-content: center; gap: 4px; margin-bottom: 15px; align-items: center; }
-.month-btn { padding: 5px 10px; border: 1px solid #ccc; background: white; cursor: pointer; border-radius: 3px; }
-
-/* 테이블 컨테이너 */
-.table-container { 
-    background: white; 
-    padding: 10px; 
-    border-radius: 8px; 
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
-    overflow-x: auto; 
-}
-
-table { 
-    width: 100%; 
-    border-collapse: collapse; 
-    table-layout: fixed; /* 설정한 % 너비를 강제로 고정 */
-    font-size: 11px;
-}
-
-th, td { border: 1px solid #ededed; padding: 2px 0; text-align: center; height: 24px; }
+/* 테이블 레이아웃 */
+.table-container { background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow: hidden; }
+table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 11px; }
+th, td { border: 1px solid #ededed; padding: 2px 0; text-align: center; height: 22px; }
 thead th { background-color: #fcfcfc; font-weight: bold; }
 
 /* -----------------------------------------------------------
-   [너비 비율 설정] 
-   1~31일 칸(.col-day)을 좁게 줄여서 비고란을 30일 옆으로 당겼습니다.
-   비고란(.col-note)은 처음에 보셨던 아주 넓은 크기의 딱 절반(42%)입니다.
+   [핵심 수정] 1~31일 칸을 왼쪽으로 밀고 비고를 넓게 배치
 ----------------------------------------------------------- */
 .col-info { width: 5.5%; }    /* 지점, 성명 */
-.col-stat { width: 3.2%; }    /* 연차 통계 정보 */
-.col-day  { width: 1.2%; }    /* 1~31일 칸 (좁게 설정하여 비고란 공간 확보) */
-.col-note { width: 42%; }     /* 비고 (30일 옆에서 시작되는 시원한 너비) */
+.col-stat { width: 3.2%; }    /* 연차 통계 */
+.col-day  { width: 1.15%; }   /* 1~31일 (간격을 좁게 조절) */
+.col-note { width: 45%; }     /* 비고 (31일 바로 옆에서 시작되는 넓은 칸) */
 
-/* 강조 색상 */
+/* [어제 색상 그대로] 강조 및 상태 색상 */
 .txt-red { color: #d32f2f !important; font-weight: bold; }
 .bg-pink { background-color: #fff0f0 !important; }
-
-/* 입력 필드 스타일 */
-.at-cell { cursor: pointer; }
+.at-cell { cursor: pointer; transition: background 0.2s; }
 .at-cell:hover { background-color: #f1f3f5; }
 
-.col-note input {
-    width: 100%;
-    border: none;
-    background: transparent;
-    font-size: 11px;
-    outline: none;
-    padding: 0 8px;
-    box-sizing: border-box;
-    text-align: left;
+/* 입력 필드 및 드롭다운 크기 고정 */
+.col-note input, select { 
+    width: 100%; border: none; background: transparent; 
+    font-size: 11px; outline: none; padding: 0 8px; box-sizing: border-box; 
 }
-
-.footer-row td { background-color: #f8f9fa !important; font-weight: bold; }
+.footer-row td { background-color: #f8f9fa !important; color: #333 !important; font-weight: bold; }
