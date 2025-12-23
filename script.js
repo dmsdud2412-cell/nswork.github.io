@@ -1,6 +1,10 @@
 const GAN_URL = "https://script.google.com/macros/s/AKfycby42R57TUGVePyKRxfsFqeLuinCy0rxIVZudX2-Z1tERUpYCxJWw50EU0ZsqIrVGlWy/exec";
 let currentType = 'manager'; let currentMonth = 1; let masterData = { manager: [], staff: [] }; let lastFetchedAttendance = [];
 
+// ★ 추가: URL에서 지점명(branch) 파라미터를 읽어옵니다.
+const urlParams = new URLSearchParams(window.location.search);
+const branchFilter = urlParams.get('branch'); 
+
 window.onload = () => { renderMonthPicker(); loadAllData(); };
 
 async function loadAllData() {
@@ -11,6 +15,12 @@ async function loadAllData() {
         if(res.config) {
             const targetCol = 4 + (currentMonth - 1); 
             res.config.slice(1).forEach(row => {
+                
+                // ★ 추가: URL에 지점명이 있을 경우, 해당 지점이 아니면 목록에서 제외합니다.
+                if (branchFilter && row[1] !== branchFilter) {
+                    return;
+                }
+
                 const p = { branch: row[1] || "", name: row[2] || "", req: row[3] || 0, unused: row[targetCol] || 0 };
                 if (row[0] === 'manager') masterData.manager.push(p);
                 else masterData.staff.push(p);
@@ -20,6 +30,8 @@ async function loadAllData() {
         renderTable(lastFetchedAttendance);
     } catch (e) { console.error("로드 실패"); }
 }
+
+// ... 이후 renderTable, applyStatusColor 등 나머지 모든 함수는 원본과 동일하게 유지됩니다.
 
 function renderTable(attendance) {
     document.getElementById('month-title').innerText = `${currentMonth}월 근태 현황`;
