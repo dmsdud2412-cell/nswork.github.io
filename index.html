@@ -4,20 +4,24 @@
     <meta charset="UTF-8">
     <title>2026 근태 관리 시스템</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
     <div class="header">
         <h1 style="font-size: 20px;">🗓️ 2026 근태 관리</h1>
-        <div class="tabs">
-            <button id="btn-manager" class="active" onclick="switchTab('manager')">지점장</button>
-            <button id="btn-staff" onclick="switchTab('staff')">직원</button>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <button onclick="downloadExcel()" class="btn-excel">📥 엑셀 저장</button>
+            <div class="tabs">
+                <button id="btn-manager" class="active" onclick="switchTab('manager')">지점장</button>
+                <button id="btn-staff" onclick="switchTab('staff')">직원</button>
+            </div>
         </div>
     </div>
 
     <div id="month-picker" style="display: flex; justify-content: center; gap: 4px; margin-bottom: 15px;"></div>
 
     <div class="table-container">
-        <table>
+        <table id="attendance-table">
             <thead>
                 <tr>
                     <th rowspan="4" class="col-info">지점</th>
@@ -27,7 +31,8 @@
                     <th rowspan="4" class="col-stat">남은<br>연차</th>
                     <th rowspan="4" class="col-stat">소진율</th>
                     <th colspan="31" id="month-title">근태 현황</th>
-                    <th rowspan="4" class="col-note">비고</th> </tr>
+                    <th rowspan="4" class="col-note">비고</th>
+                </tr>
                 <tr id="row-dates"></tr>
                 <tr id="row-weeks"></tr>
                 <tr id="row-holidays"></tr>
