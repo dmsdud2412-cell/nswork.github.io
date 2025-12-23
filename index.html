@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>2026 근태 관리 시스템</title>
     <style>
-        /* [기존 디자인 완벽 유지] */
+        /* [기존 디자인 및 기능 100% 유지] */
         body { font-family: 'Pretendard', sans-serif; margin: 10px; background-color: #f8f9fa; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .tabs button { padding: 8px 20px; border: 1px solid #ddd; background: #eee; cursor: pointer; border-radius: 5px; font-weight: bold; }
@@ -18,24 +18,23 @@
         thead th { background-color: #fcfcfc; font-weight: bold; }
 
         /* -----------------------------------------------------------
-           [핵심: 비고란 10글자 확보를 위한 너비 조정]
-           - 날짜(.col-day)를 아주 촘촘하게(1.1%) 줄여 공간 확보
-           - 비고(.col-note)에 30%를 할당하여 10자 이상 가독성 확보
+           [비율 재설정 - 관리자님 피드백 반영]
+           날짜 한 칸(1.5%) 대비 비고란(15%)을 10배 넓게 설정했습니다.
+           이 너비는 한글 기준 약 10~12자가 잘림 없이 들어가는 크기입니다.
         ----------------------------------------------------------- */
-        .col-info { width: 4.5%; }    /* 지점, 성명 */
-        .col-stat { width: 3%; }      /* 통계 정보 */
-        .col-day  { width: 1.1%; }    /* 1~31일 칸 (가장 좁게) */
-        .col-note { width: 30%; }     /* ★비고 (날짜 칸의 약 25배 크기) */
+        .col-info { width: 6.5%; }    /* 지점, 성명 */
+        .col-stat { width: 3.5%; }    /* 통계 정보 */
+        .col-day  { width: 1.5%; }    /* 1~31일 칸 */
+        .col-note { width: 15%; }     /* ★비고 (날짜 칸 10개를 합친 너비, 글자 10자 최적화) */
 
         .txt-red { color: #d32f2f !important; font-weight: bold; }
         .bg-pink { background-color: #fff0f0 !important; }
         .at-cell { cursor: pointer; }
         .at-cell:hover { background-color: #f1f3f5; }
 
-        /* 비고 입력창 정렬 */
         .col-note input { 
             width: 100%; border: none; background: transparent; 
-            font-size: 11px; outline: none; padding: 0 10px; 
+            font-size: 11px; outline: none; padding: 0 8px; 
             box-sizing: border-box; text-align: left; 
         }
         .footer-row td { background-color: #f8f9fa !important; color: #333 !important; font-weight: bold; }
