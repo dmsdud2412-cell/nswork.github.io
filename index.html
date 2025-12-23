@@ -2,20 +2,50 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2026 근태 관리 시스템</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        /* [어제 디자인 100% 유지] */
+        body { font-family: 'Pretendard', sans-serif; margin: 10px; background-color: #f8f9fa; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .tabs button { padding: 8px 20px; border: 1px solid #ddd; background: #eee; cursor: pointer; border-radius: 5px; font-weight: bold; }
+        .tabs button.active { background: #d32f2f; color: white; border-color: #d32f2f; }
+        .month-btn { padding: 5px 10px; border: 1px solid #ccc; background: white; cursor: pointer; border-radius: 3px; font-size: 11px; }
+        .month-btn.active { background: #d32f2f !important; color: white !important; border: none; }
+
+        .table-container { background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 11px; }
+        th, td { border: 1px solid #ededed; padding: 2px 0; text-align: center; height: 22px; }
+        thead th { background-color: #fcfcfc; font-weight: bold; }
+
+        /* -----------------------------------------------------------
+           [비율 조정 핵심] 
+           1~31일(.col-day)을 아주 좁게(1.1%) 설정하여 왼쪽으로 바짝 붙이고, 
+           남은 공간(45%)을 비고란(.col-note)에 다 주었습니다.
+        ----------------------------------------------------------- */
+        .col-info { width: 5.5%; }    /* 지점, 성명 */
+        .col-stat { width: 3.2%; }    /* 통계 정보 */
+        .col-day  { width: 1.15%; }   /* 1~31일 (숫자만 겨우 보일 정도로 좁게) */
+        .col-note { width: 45%; }     /* 비고 (사진 크기의 절반, 31일 바로 옆에 붙음) */
+
+        .txt-red { color: #d32f2f !important; font-weight: bold; }
+        .bg-pink { background-color: #fff0f0 !important; }
+        .at-cell { cursor: pointer; }
+        .at-cell:hover { background-color: #f1f3f5; }
+
+        /* [어제와 동일] 입력창 및 드롭다운 스타일 */
+        .col-note input, select { width: 100%; border: none; background: transparent; font-size: 11px; outline: none; padding: 0 8px; box-sizing: border-box; }
+        .footer-row td { background-color: #f8f9fa !important; color: #333 !important; font-weight: bold; }
+    </style>
 </head>
 <body>
     <div class="header">
-        <h1>🗓️ 2026 근태 관리</h1>
+        <h1 style="font-size: 20px;">🗓️ 2026 근태 관리</h1>
         <div class="tabs">
             <button id="btn-manager" class="active" onclick="switchTab('manager')">지점장</button>
             <button id="btn-staff" onclick="switchTab('staff')">직원</button>
         </div>
     </div>
-
-    <div id="month-picker" class="month-container"></div>
+    <div id="month-picker" style="display: flex; justify-content: center; gap: 4px; margin-bottom: 15px; align-items: center;"></div>
 
     <div class="table-container">
         <table>
@@ -27,7 +57,7 @@
                     <th rowspan="4" class="col-stat">전월<br>미사용</th>
                     <th rowspan="4" class="col-stat">남은<br>연차</th>
                     <th rowspan="4" class="col-stat">소진율</th>
-                    <th colspan="32" id="month-title">1월 근태 현황</th>
+                    <th colspan="32" id="month-title">근태 현황</th> 
                 </tr>
                 <tr id="row-dates"></tr>
                 <tr id="row-weeks"></tr>
@@ -44,6 +74,174 @@
             </tfoot>
         </table>
     </div>
-    <script src="script.js"></script>
+
+    <script>
+        const GAN_URL = "https://script.google.com/macros/s/AKfycby42R57TUGVePyKRxfsFqeLuinCy0rxIVZudX2-Z1tERUpYCxJWw50EU0ZsqIrVGlWy/exec";
+        let currentType = 'manager'; let currentMonth = 1; let masterData = { manager: [], staff: [] }; let lastFetchedAttendance = [];
+
+        window.onload = () => { renderMonthPicker(); loadAllData(); };
+
+        async function loadAllData() {
+            try {
+                const response = await fetch(GAN_URL);
+                const res = await response.json();
+                masterData.manager = []; masterData.staff = [];
+                if(res.config) {
+                    const targetCol = 4 + (currentMonth - 1); 
+                    res.config.slice(1).forEach(row => {
+                        const p = { branch: row[1], name: row[2], req: row[3], unused: row[targetCol] || 0 };
+                        if (row[0] === 'manager') masterData.manager.push(p);
+                        else masterData.staff.push(p);
+                    });
+                }
+                lastFetchedAttendance = res.attendance || [];
+                renderTable(lastFetchedAttendance);
+            } catch (e) { console.error("데이터 로드 실패"); }
+        }
+
+        function renderTable(attendance) {
+            document.getElementById('month-title').innerText = `${currentMonth}월 근태 현황`;
+            const tbody = document.getElementById('attendance-body');
+            const dateRow = document.getElementById('row-dates');
+            const weekRow = document.getElementById('row-weeks');
+            const holidayRow = document.getElementById('row-holidays');
+            const vRow = document.getElementById('row-vacation');
+            const wRow = document.getElementById('row-working');
+
+            tbody.innerHTML = ''; dateRow.innerHTML = ''; weekRow.innerHTML = ''; holidayRow.innerHTML = '';
+            while(vRow.cells.length > 1) vRow.deleteCell(1);
+            while(wRow.cells.length > 1) wRow.deleteCell(1);
+
+            const holidayInfo = { 1: { 1: "신정" }, 2: { 16: "설날", 17: "설날", 18: "설날" }, 3: { 1: "삼일절" }, 5: { 5: "어린이날", 24: "석가탄신일" }, 6: { 6: "현충일" }, 8: { 15: "광복절" }, 10: { 3: "개천절", 9: "한글날" }, 12: { 25: "성탄절" } }[currentMonth] || {};
+            const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
+
+            // 1일부터 31일까지 모두 생성
+            for (let d = 1; d <= 31; d++) {
+                const dateObj = new Date(2026, currentMonth - 1, d);
+                const isExist = dateObj.getMonth() === currentMonth - 1;
+                const thD = document.createElement('th'); thD.className = 'col-day';
+                const thW = document.createElement('th'); thW.className = 'col-day';
+                const thH = document.createElement('th'); thH.className = 'col-day';
+
+                if (isExist) {
+                    const dayIdx = dateObj.getDay();
+                    const hName = holidayInfo[d] || "";
+                    thD.innerText = d; thW.innerText = weekDays[dayIdx]; thH.innerText = hName;
+                    if(dayIdx === 0 || dayIdx === 6 || hName !== "") [thD, thW, thH].forEach(el => el.classList.add('txt-red'));
+                }
+                dateRow.appendChild(thD); weekRow.appendChild(thW); holidayRow.appendChild(thH);
+                vRow.insertCell(-1).id = `vac-count-${d}`; wRow.insertCell(-1).id = `work-count-${d}`;
+            }
+
+            // 비고 칸 추가 (31일 바로 옆)
+            const noteTh = document.createElement('th');
+            noteTh.innerText = "비고"; noteTh.className = 'col-note';
+            dateRow.appendChild(noteTh);
+            weekRow.appendChild(document.createElement('th'));
+            holidayRow.appendChild(document.createElement('th'));
+            vRow.insertCell(-1); wRow.insertCell(-1);
+
+            const list = (currentType === 'manager') ? masterData.manager : masterData.staff;
+            list.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.setAttribute('data-person', p.name);
+                tr.innerHTML = `<td>${p.branch}</td><td>${p.name}</td><td>${p.req}</td><td>${p.unused}</td><td id="rem-${p.name}">${p.unused}</td><td id="rate-${p.name}">0%</td>`;
+                
+                for (let i = 1; i <= 31; i++) {
+                    const dateObj = new Date(2026, currentMonth - 1, i);
+                    const isExist = dateObj.getMonth() === currentMonth - 1;
+                    const td = document.createElement('td'); td.className = 'at-cell col-day';
+                    if (isExist) {
+                        if (dateObj.getDay() === 0 || dateObj.getDay() === 6 || holidayInfo[i]) td.classList.add('bg-pink');
+                        const match = attendance.find(r => r[0] == currentMonth && r[1] == currentType && r[2] == p.name && r[3] == i);
+                        td.innerText = match ? match[4] : "";
+                        if(td.innerText) applyStatusColor(td, td.innerText);
+                        td.setAttribute('data-day', i);
+                        td.onclick = function() { showDropdown(this, i, p.name); };
+                    }
+                    tr.appendChild(td);
+                }
+
+                const noteTd = document.createElement('td');
+                const noteMatch = attendance.find(r => r[0] == currentMonth && r[1] == currentType && r[2] == p.name && r[3] == 32);
+                noteTd.className = 'col-note';
+                noteTd.innerHTML = `<input type="text" value="${noteMatch ? noteMatch[4] : ""}" placeholder="비고 입력" onchange="saveData(${currentMonth}, '${currentType}', '${p.name}', 32, this.value)">`;
+                tr.appendChild(noteTd);
+                tbody.appendChild(tr);
+            });
+            updateCounts();
+        }
+
+        function applyStatusColor(cell, status) {
+            cell.style.color = ""; cell.style.fontWeight = "bold";
+            if(status === '연차' || status === '휴가') cell.style.color = "#d32f2f";
+            else if(status.includes('반차')) cell.style.color = "#ef6c00";
+            else if(status === '반반차') cell.style.color = "#4caf50";
+        }
+
+        function showDropdown(cell, day, name) {
+            if (cell.querySelector('select')) return;
+            const select = document.createElement('select');
+            ['', '연차', '오전반차', '오후반차', '반반차', '휴가', '출장'].forEach(s => {
+                const opt = document.createElement('option'); opt.value = s; opt.innerText = s || '-';
+                if(s === cell.innerText) opt.selected = true;
+                select.appendChild(opt);
+            });
+            select.onchange = function() {
+                cell.innerText = this.value; applyStatusColor(cell, this.value);
+                saveData(currentMonth, currentType, name, day, this.value); updateCounts();
+            };
+            cell.innerHTML = ''; cell.appendChild(select); select.focus();
+        }
+
+        async function saveData(m, t, n, d, s) {
+            fetch(GAN_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ month: m, type: t, name: n, day: d, status: s }) });
+        }
+
+        function updateCounts() {
+            const rows = document.querySelectorAll('#attendance-body tr');
+            const dailyVacation = Array(33).fill(0);
+            rows.forEach(row => {
+                const name = row.getAttribute('data-person');
+                let used = 0;
+                row.querySelectorAll('.at-cell').forEach(c => {
+                    const txt = c.innerText; if(!txt) return;
+                    if (txt === '연차') used += 1; else if (txt === '반반차') used += 0.25; else if (txt.includes('반차')) used += 0.5;
+                    dailyVacation[parseInt(c.getAttribute('data-day'))] += 1;
+                });
+                const base = parseFloat(row.cells[3].innerText) || 0;
+                const rem = base - used;
+                document.getElementById(`rem-${name}`).innerText = Number.isInteger(rem) ? rem : rem.toFixed(2);
+                const req = parseFloat(row.cells[2].innerText) || 0;
+                document.getElementById(`rate-${name}`).innerText = req > 0 ? Math.floor((req - rem) / req * 100) + '%' : '0%';
+            });
+            for (let d = 1; d <= 31; d++) {
+                const v = document.getElementById(`vac-count-${d}`); const w = document.getElementById(`work-count-${d}`);
+                if (v && w) { v.innerText = dailyVacation[d]; w.innerText = rows.length - dailyVacation[d]; }
+            }
+        }
+
+        function renderMonthPicker() {
+            const container = document.getElementById('month-picker'); container.innerHTML = '';
+            for (let m = 1; m <= 12; m++) {
+                const btn = document.createElement('button'); btn.innerText = m + '월';
+                btn.className = `month-btn ${m === currentMonth ? 'active' : ''}`;
+                btn.onclick = () => { currentMonth = m; renderMonthPicker(); loadAllData(); };
+                container.appendChild(btn);
+            }
+            if (!document.getElementById('btn-excel')) {
+                const btn = document.createElement('button'); btn.id = 'btn-excel'; btn.innerText = '엑셀 저장 📥';
+                btn.style.cssText = "margin-left:20px; background:#2e7d32; color:white; border:none; padding:5px 12px; cursor:pointer; border-radius:4px; font-weight:bold; font-size:12px;";
+                btn.onclick = () => { /* 엑셀 저장 */ }; container.appendChild(btn);
+            }
+        }
+
+        function switchTab(type) {
+            currentType = type;
+            document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+            document.getElementById(`btn-${type}`).classList.add('active');
+            renderTable(lastFetchedAttendance);
+        }
+    </script>
 </body>
 </html>
