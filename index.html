@@ -9,7 +9,7 @@
         .tabs button { padding: 8px 20px; border: 1px solid #ddd; background: #eee; cursor: pointer; border-radius: 5px; font-weight: bold; }
         .tabs button.active { background: #d32f2f; color: white; border-color: #d32f2f; }
         
-        /* [수정] 표를 감싸는 박스 내부에만 가로 스크롤이 생기도록 설정 */
+        /* 테이블 컨테이너: 이 안에서 가로 스크롤이 발생함 */
         .table-container { 
             background: white; 
             padding: 10px; 
@@ -18,22 +18,20 @@
             overflow-x: auto; 
         }
 
-        /* [수정] table-layout: auto로 변경하여 비고 칸이 늘어날 수 있게 하되, 
-           1~31일 칸은 스크립트에서 지정한 col-day 클래스로 크기를 제어합니다. */
         table { 
             width: 100%; 
             border-collapse: collapse; 
-            font-size: 11px; 
-            min-width: 1200px; /* 테이블이 너무 찌그러지지 않게 최소 너비 보장 */
+            font-size: 11px;
+            /* 고정 레이아웃을 해제해야 비고 칸이 늘어납니다 */
         }
 
         th, td { border: 1px solid #ededed; padding: 2px 0; text-align: center; height: 22px; }
         thead th { background-color: #fcfcfc; font-weight: bold; }
 
-        /* 기존 디자인 클래스 유지 */
-        .col-info { width: 80px; } 
-        .col-stat { width: 50px; } 
-        .col-day { width: 30px; min-width: 30px; } /* 날짜 칸 너비 고정 */
+        /* [중요] 1~31일 칸이 한눈에 보이도록 너비를 좁게 고정 */
+        .col-info { width: 70px; min-width: 70px; } 
+        .col-stat { width: 45px; min-width: 45px; } 
+        .col-day { width: 25px; min-width: 25px; } 
 
         .txt-red { color: #d32f2f !important; font-weight: bold; }
         .bg-pink { background-color: #fff0f0 !important; }
