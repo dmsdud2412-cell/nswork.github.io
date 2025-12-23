@@ -1,8 +1,8 @@
-/* [어제 디자인 그대로] 전체 폰트 및 배경 */
+/* [어제 디자인 그대로] */
 body { font-family: 'Pretendard', sans-serif; margin: 10px; background-color: #f8f9fa; }
 .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
 
-/* 탭 및 월 선택 버튼 디자인 */
+/* 탭 및 버튼 디자인 */
 .tabs button { padding: 8px 20px; border: 1px solid #ddd; background: #eee; cursor: pointer; border-radius: 5px; font-weight: bold; }
 .tabs button.active { background: #d32f2f; color: white; border-color: #d32f2f; }
 .month-btn { padding: 5px 10px; border: 1px solid #ccc; background: white; cursor: pointer; border-radius: 3px; font-size: 11px; }
@@ -15,20 +15,21 @@ th, td { border: 1px solid #ededed; padding: 2px 0; text-align: center; height: 
 thead th { background-color: #fcfcfc; font-weight: bold; }
 
 /* -----------------------------------------------------------
-   [핵심 수정] 1~31일 칸을 왼쪽으로 밀고 비고를 넓게 배치
+   [비고 칸 대폭 확장]
+   비고란(.col-note)을 55%로 늘려 아주 넓게 만들었습니다.
 ----------------------------------------------------------- */
-.col-info { width: 5.5%; }    /* 지점, 성명 */
-.col-stat { width: 3.2%; }    /* 연차 통계 */
-.col-day  { width: 1.15%; }   /* 1~31일 (간격을 좁게 조절) */
-.col-note { width: 45%; }     /* 비고 (31일 바로 옆에서 시작되는 넓은 칸) */
+.col-info { width: 5%; }      /* 지점, 성명 */
+.col-stat { width: 2.8%; }    /* 연차 통계 */
+.col-day  { width: 1%; }       /* 1~31일 (더 촘촘하게 붙임) */
+.col-note { width: 55%; }     /* ★비고 (가장 넓게 확장) */
 
-/* [어제 색상 그대로] 강조 및 상태 색상 */
+/* 강조 색상 */
 .txt-red { color: #d32f2f !important; font-weight: bold; }
 .bg-pink { background-color: #fff0f0 !important; }
 .at-cell { cursor: pointer; transition: background 0.2s; }
 .at-cell:hover { background-color: #f1f3f5; }
 
-/* 입력 필드 및 드롭다운 크기 고정 */
+/* 입력창 스타일 */
 .col-note input, select { 
     width: 100%; border: none; background: transparent; 
     font-size: 11px; outline: none; padding: 0 8px; box-sizing: border-box; 
