@@ -84,7 +84,6 @@ function renderTable(attendance) {
         const thW = document.createElement('th');
         const thH = document.createElement('th');
         
-        // 날짜 칸은 고정된 클래스를 부여
         thD.className = 'col-day';
         thW.className = 'col-day';
         thH.className = 'col-day';
@@ -100,11 +99,9 @@ function renderTable(attendance) {
         wRow.insertCell(-1).id = `work-count-${d}`;
     }
 
-    // [비고 헤더] 내용에 따라 늘어나도록 설정
     const noteTh = document.createElement('th');
     noteTh.innerText = "비고";
-    noteTh.style.minWidth = "200px";
-    noteTh.style.width = "auto";
+    noteTh.className = 'col-note'; // CSS에서 지정한 10% 너비 적용
     dateRow.appendChild(noteTh);
     weekRow.appendChild(document.createElement('th'));
     holidayRow.appendChild(document.createElement('th'));
@@ -133,25 +130,19 @@ function renderTable(attendance) {
             tr.appendChild(td);
         }
 
-        // [비고 칸] 짤리지 않고 가로로 길어지게 설정
         const noteTd = document.createElement('td');
         const noteMatch = attendance.find(r => r[0] == currentMonth && r[1] == currentType && r[2] == p.name && r[3] == 32);
         const noteValue = noteMatch ? noteMatch[4] : "";
         
+        noteTd.className = 'col-note';
         noteTd.style.textAlign = "left";
         noteTd.style.padding = "0 5px";
-        noteTd.style.whiteSpace = "nowrap"; // 줄바꿈 방지
 
-        // 글자 수에 따라 input의 size가 조절되어 칸 자체가 늘어남
-        const displaySize = noteValue.length > 20 ? noteValue.length : 20;
-        noteTd.innerHTML = `<input type="text" value="${noteValue}" size="${displaySize}"
-            style="border:none; background:transparent; font-size:11px; outline:none; font-family:inherit; width:auto;" 
-            placeholder="내용 입력">`;
+        noteTd.innerHTML = `<input type="text" value="${noteValue}" 
+            style="width: 100%; border:none; background:transparent; font-size:11px; outline:none; font-family:inherit;" 
+            placeholder="입력">`;
         
         const input = noteTd.querySelector('input');
-        input.oninput = function() {
-            this.size = this.value.length > 20 ? this.value.length : 20;
-        };
         input.onchange = function() {
             saveData(currentMonth, currentType, p.name, 32, this.value);
         };
