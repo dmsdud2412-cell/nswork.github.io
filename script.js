@@ -40,24 +40,17 @@ function downloadExcel() {
     document.body.removeChild(link);
 }
 
-// [기존] 월별 시트 열 참조 로직 유지 (E열~P열)
 async function loadAllData() {
     try {
         const response = await fetch(GAN_URL);
         const res = await response.json();
         masterData.manager = []; masterData.staff = [];
-        
         if(res.config) {
             const targetColumnIndex = 4 + (currentMonth - 1); 
             res.config.slice(1).forEach(row => {
                 const bName = row[1] || "";
                 if (myBranch && bName !== myBranch) return; 
-                const p = { 
-                    branch: bName, 
-                    name: row[2] || "", 
-                    req: row[3] || 0, 
-                    unused: row[targetColumnIndex] || 0 
-                };
+                const p = { branch: bName, name: row[2] || "", req: row[3] || 0, unused: row[targetColumnIndex] || 0 };
                 if (row[0] === 'manager') masterData.manager.push(p);
                 else masterData.staff.push(p);
             });
@@ -70,14 +63,12 @@ async function loadAllData() {
 function renderTable(attendance) {
     const titleEl = document.getElementById('month-title');
     if (titleEl) { titleEl.innerText = `${currentMonth}월 근태 현황`; }
-
     const tbody = document.getElementById('attendance-body');
     const dateRow = document.getElementById('row-dates');
     const weekRow = document.getElementById('row-weeks');
     const holidayRow = document.getElementById('row-holidays');
     const vRow = document.getElementById('row-vacation');
     const wRow = document.getElementById('row-working');
-
     if(!tbody || !dateRow) return;
 
     tbody.innerHTML = ''; dateRow.innerHTML = ''; weekRow.innerHTML = ''; holidayRow.innerHTML = '';
@@ -87,7 +78,6 @@ function renderTable(attendance) {
     const holidayInfo = { 1: { 1: "신정" }, 2: { 16: "설날", 17: "설날", 18: "설날" }, 3: { 1: "삼일절", 2: "대체공휴일" }, 5: { 5: "어린이날", 24: "석가탄신일", 25: "대체공휴일" }, 6: { 6: "현충일" }, 8: { 15: "광복절", 17: "대체공휴일" }, 9: { 24: "추석", 25: "추석", 26: "추석", 28: "대체공휴일" }, 10: { 3: "개천절", 5: "대체공휴일", 9: "한글날" }, 12: { 25: "성탄절" } }[currentMonth] || {};
     const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
 
-    // 1~31일 헤더 생성 (기존 디자인 유지)
     for (let d = 1; d <= 31; d++) {
         const dateObj = new Date(2026, currentMonth - 1, d);
         const isExist = dateObj.getMonth() === currentMonth - 1;
@@ -105,11 +95,10 @@ function renderTable(attendance) {
         wRow.insertCell(-1).id = `work-count-${d}`;
     }
 
-    // [추가] 비고 열 헤더 (글자 길이에 따라 자동 확장되도록 설정)
+    // [비고 열 헤더] 최소 너비 지정
     const noteTh = document.createElement('th');
     noteTh.innerText = "비고";
-    noteTh.style.minWidth = "150px"; 
-    noteTh.style.width = "auto";
+    noteTh.style.minWidth = "200px"; 
     dateRow.appendChild(noteTh);
     weekRow.appendChild(document.createElement('th'));
     holidayRow.appendChild(document.createElement('th'));
@@ -138,12 +127,11 @@ function renderTable(attendance) {
             tr.appendChild(td);
         }
 
-        // [추가] 비고 입력 칸 (입력 길이에 따라 칸이 유동적으로 확장됨)
         const noteTd = document.createElement('td');
         const noteMatch = attendance.find(r => r[0] == currentMonth && r[1] == currentType && r[2] == p.name && r[3] == 32);
         const noteValue = noteMatch ? noteMatch[4] : "";
-        noteTd.style.whiteSpace = "nowrap"; // 줄바꿈 방지
-        noteTd.innerHTML = `<input type="text" value="${noteValue}" style="width:100%; min-width:140px; border:none; background:transparent; font-size:11px; outline:none; text-align:left;" placeholder="내용 입력">`;
+        noteTd.style.textAlign = "left";
+        noteTd.innerHTML = `<input type="text" value="${noteValue}" style="width:100%; border:none; background:transparent; font-size:11px; outline:none; padding-left:5px;" placeholder="내용 입력">`;
         const input = noteTd.querySelector('input');
         input.onchange = function() {
             saveData(currentMonth, currentType, p.name, 32, this.value);
@@ -163,10 +151,7 @@ function applyStatusColor(cell, status) {
 }
 
 async function saveData(month, type, name, day, status) {
-    fetch(GAN_URL, {
-        method: "POST", mode: "no-cors",
-        body: JSON.stringify({ month: parseInt(month), type: type, name: name, day: parseInt(day), status: status })
-    });
+    fetch(GAN_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ month: parseInt(month), type: type, name: name, day: parseInt(day), status: status }) });
 }
 
 function showDropdown(cell) {
@@ -195,7 +180,6 @@ function showDropdown(cell) {
     select.onblur = function() { if (cell.contains(this)) cell.innerText = this.value; };
 }
 
-// [기존] 반반차(0.25) 계산 기능 유지
 function updateCounts() {
     const rows = document.querySelectorAll('#attendance-body tr');
     const dailyVacationCount = Array(32).fill(0);
