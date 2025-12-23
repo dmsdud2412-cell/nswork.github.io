@@ -10,7 +10,7 @@ let lastFetchedAttendance = [];
 
 window.onload = () => { renderMonthPicker(); loadAllData(); };
 
-// [기존] 엑셀 버튼 디자인 유지
+// [기존] 엑셀 저장 (디자인/기능 보존)
 function addExcelButton() {
     if (document.getElementById('btn-excel')) return;
     const container = document.getElementById('month-picker');
@@ -40,6 +40,7 @@ function downloadExcel() {
     document.body.removeChild(link);
 }
 
+// [기존] 월별 시트 로직 유지
 async function loadAllData() {
     try {
         const response = await fetch(GAN_URL);
@@ -57,7 +58,7 @@ async function loadAllData() {
         }
         lastFetchedAttendance = res.attendance || [];
         renderTable(lastFetchedAttendance);
-    } catch (e) { console.error("데이터 로드 실패"); }
+    } catch (e) { console.error("로드 실패"); }
 }
 
 function renderTable(attendance) {
@@ -95,10 +96,10 @@ function renderTable(attendance) {
         wRow.insertCell(-1).id = `work-count-${d}`;
     }
 
-    // [비고 열 헤더] 최소 너비 지정
+    // [비고 헤더] 이탈 방지를 위해 스타일 강화
     const noteTh = document.createElement('th');
     noteTh.innerText = "비고";
-    noteTh.style.minWidth = "200px"; 
+    noteTh.style.cssText = "width: auto; min-width: 250px; white-space: nowrap;"; 
     dateRow.appendChild(noteTh);
     weekRow.appendChild(document.createElement('th'));
     holidayRow.appendChild(document.createElement('th'));
@@ -127,11 +128,13 @@ function renderTable(attendance) {
             tr.appendChild(td);
         }
 
+        // [핵심 수정] 비고 입력 칸: 글자가 표 밖으로 나가는 현상 차단
         const noteTd = document.createElement('td');
         const noteMatch = attendance.find(r => r[0] == currentMonth && r[1] == currentType && r[2] == p.name && r[3] == 32);
         const noteValue = noteMatch ? noteMatch[4] : "";
-        noteTd.style.textAlign = "left";
-        noteTd.innerHTML = `<input type="text" value="${noteValue}" style="width:100%; border:none; background:transparent; font-size:11px; outline:none; padding-left:5px;" placeholder="내용 입력">`;
+        noteTd.style.cssText = "text-align: left; padding-left: 5px; width: auto; min-width: 250px; overflow: hidden;";
+        
+        noteTd.innerHTML = `<input type="text" value="${noteValue}" style="width: 100%; border: none; background: transparent; font-size: 11px; outline: none;" placeholder="내용 입력">`;
         const input = noteTd.querySelector('input');
         input.onchange = function() {
             saveData(currentMonth, currentType, p.name, 32, this.value);
@@ -182,7 +185,7 @@ function showDropdown(cell) {
 
 function updateCounts() {
     const rows = document.querySelectorAll('#attendance-body tr');
-    const dailyVacationCount = Array(32).fill(0);
+    const dailyVacationCount = Array(33).fill(0);
     rows.forEach(row => {
         const name = row.getAttribute('data-person');
         const cells = row.querySelectorAll('.at-cell');
