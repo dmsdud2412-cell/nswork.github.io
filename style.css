@@ -3,47 +3,63 @@ body { font-family: 'Pretendard', sans-serif; margin: 10px; background-color: #f
 .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
 .header h1 { font-size: 20px; margin: 0; }
 
-/* 테이블 설정 */
+/* ★ 버튼 색상 복구 ★ */
+.btn-excel { 
+    padding: 8px 15px; background-color: #2e7d32; color: white; 
+    border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12px; 
+}
+.btn-excel:hover { background-color: #1b5e20; }
+
+.tabs button { 
+    padding: 8px 20px; border: 1px solid #ddd; background: #eee; 
+    cursor: pointer; border-radius: 5px; font-weight: bold; color: #333;
+}
+/* 지점장/직원 탭 활성화 시 빨간색 */
+.tabs button.active { background: #d32f2f; color: white; border-color: #d32f2f; }
+
+.month-btn { padding: 5px 10px; border: 1px solid #ccc; background: white; cursor: pointer; border-radius: 3px; font-size: 11px; }
+.month-btn.active { background: #d32f2f !important; color: white !important; border: none; }
+
+/* 테이블 설정 - 칸 너비 고정 */
 .table-container { width: 100%; overflow-x: auto; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); box-sizing: border-box; }
 table { 
     width: auto; 
     min-width: 100%; 
     border-collapse: collapse; 
-    table-layout: fixed; /* ★ 칸 너비를 입력 내용에 상관없이 고정합니다 */
+    table-layout: fixed; /* 칸 너비 강제 고정 */
     font-size: 11px; 
 }
 
-/* 셀 공통 속성 */
+/* 셀 공통 속성 - 줄바꿈 허용 */
 th, td { 
     border: 1px solid #ededed; 
     padding: 2px 0; 
     text-align: center; 
-    height: 34px; /* 줄바꿈을 고려해 높이를 약간 키웠습니다 */
+    height: 36px; /* 줄바꿈 대응 높이 */
     position: relative; 
-    word-break: keep-all; /* 단어 단위로 줄바꿈 */
-    white-space: normal;  /* ★ 자동 줄바꿈을 허용합니다 (nowrap 삭제) */
-    line-height: 1.2;     /* 줄 간격 조정 */
+    white-space: normal; /* 자동 줄바꿈 허용 */
+    word-break: break-all; 
+    line-height: 1.2;
 }
 thead th { background-color: #fcfcfc; font-weight: bold; }
 
-/* ★ 칸 너비 설정 구역 ★ */
-.col-info { width: 100px !important; } /* 지점/성명 */
-.col-stat { width: 50px; }              /* 통계 */
-.col-day  { width: 46px; }              /* 날짜 칸 (오후반차가 아래로 내려가게 함) */
-.col-note { width: 160px; }             /* 비고 */
+/* ★ 칸 너비 설정 (지점 이름 한 줄로, 날짜는 줄바꿈) ★ */
+.col-info { width: 100px !important; } /* 지점/성명 늘림 */
+.col-stat { width: 55px; } 
+.col-day  { width: 45px; }             /* 날짜 칸 고정 (오후반차 입력 시 줄바꿈됨) */
+.col-note { width: 130px; }
 
 /* 컬러 스타일 */
 .txt-red { color: #d32f2f !important; font-weight: bold; }
 .bg-pink { background-color: #fff0f0 !important; }
 
-/* 비고란 입력창 투명화 */
+/* 비고란 입력창 */
 .col-note input {
     width: 100%; height: 100%; border: none !important; background: transparent !important;
     font-size: 11px; outline: none !important; box-sizing: border-box; padding: 0 8px;
-    text-align: left; box-shadow: none !important;
+    text-align: left;
 }
 
-/* 드롭다운 스타일 */
+/* 드롭다운 */
 .at-cell select { width: 100%; height: 100%; border: none; background: transparent; font-size: 11px; outline: none; text-align-last: center; cursor: pointer; }
 .footer-row td { background-color: #f8f9fa !important; font-weight: bold; color: #333; }
-
