@@ -18,7 +18,7 @@ async function loadAllData() {
         }
         lastFetchedAttendance = res.attendance || [];
         renderTable(lastFetchedAttendance);
-    } catch (e) { console.error("로드 실패"); }
+    } catch (e) { console.error("데이터 로드 실패"); }
 }
 
 function renderTable(attendance) {
@@ -43,7 +43,6 @@ function renderTable(attendance) {
         const thD = document.createElement('th'); thD.className = 'col-day';
         const thW = document.createElement('th'); thW.className = 'col-day';
         const thH = document.createElement('th'); thH.className = 'col-day';
-
         if (isExist) {
             const dayIdx = dateObj.getDay();
             const hName = holidayInfo[d] || "";
@@ -66,7 +65,6 @@ function renderTable(attendance) {
         const tr = document.createElement('tr');
         tr.setAttribute('data-person', p.name);
         tr.innerHTML = `<td>${p.branch}</td><td>${p.name}</td><td>${p.req}</td><td>${p.unused}</td><td id="rem-${p.name}">${p.unused}</td><td id="rate-${p.name}">0%</td>`;
-        
         for (let i = 1; i <= 31; i++) {
             const dateObj = new Date(2026, currentMonth - 1, i);
             const isExist = dateObj.getMonth() === currentMonth - 1;
@@ -81,11 +79,10 @@ function renderTable(attendance) {
             }
             tr.appendChild(td);
         }
-
         const noteTd = document.createElement('td');
         const noteMatch = attendance.find(r => r[0] == currentMonth && r[1] == currentType && r[2] == p.name && r[3] == 32);
         noteTd.className = 'col-note';
-        noteTd.innerHTML = `<input type="text" value="${noteMatch ? noteMatch[4] : ""}" placeholder="사유 입력" onchange="saveData(${currentMonth}, '${currentType}', '${p.name}', 32, this.value)">`;
+        noteTd.innerHTML = `<input type="text" value="${noteMatch ? noteMatch[4] : ""}" placeholder="비고" onchange="saveData(${currentMonth}, '${currentType}', '${p.name}', 32, this.value)">`;
         tr.appendChild(noteTd);
         tbody.appendChild(tr);
     });
@@ -111,9 +108,7 @@ function showDropdown(cell, day, name) {
         cell.innerText = this.value; applyStatusColor(cell, this.value);
         saveData(currentMonth, currentType, name, day, this.value); updateCounts();
     };
-    cell.onblur = function() { // 칸 밖을 누르면 선택창 사라지게
-        cell.innerText = this.value; applyStatusColor(cell, this.value);
-    };
+    select.onblur = function() { cell.innerText = this.value; applyStatusColor(cell, this.value); };
     cell.innerHTML = ''; cell.appendChild(select); select.focus();
 }
 
