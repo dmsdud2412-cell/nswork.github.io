@@ -1,9 +1,4 @@
-body { 
-    font-family: 'Pretendard', sans-serif; 
-    margin: 10px; 
-    background-color: #f8f9fa; 
-    overflow-x: hidden; /* 브라우저 자체 스크롤은 숨김 */
-}
+body { font-family: 'Pretendard', sans-serif; margin: 10px; background-color: #f8f9fa; overflow-x: hidden; }
 
 .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
 .tabs button { padding: 8px 20px; border: 1px solid #ddd; background: #eee; cursor: pointer; border-radius: 5px; font-weight: bold; }
@@ -11,10 +6,10 @@ body {
 .month-btn { padding: 5px 10px; border: 1px solid #ccc; background: white; cursor: pointer; border-radius: 3px; font-size: 11px; }
 .month-btn.active { background: #d32f2f !important; color: white !important; border: none; }
 
-/* 표 컨테이너: 여기서 가로 스크롤바가 다시 나타납니다 */
+/* 표 컨테이너: 가로 스크롤 활성화 */
 .table-container { 
     width: 100%; 
-    overflow-x: auto; /* 내용이 많아지면 스크롤바 자동 생성 */
+    overflow-x: auto; 
     background: white; 
     padding: 10px; 
     border-radius: 8px; 
@@ -23,7 +18,7 @@ body {
 }
 
 table { 
-    width: auto; /* 100%로 고정하지 않아야 스크롤이 생깁니다 */
+    width: auto;      
     min-width: 100%;  
     border-collapse: collapse; 
     table-layout: fixed; 
@@ -33,11 +28,11 @@ table {
 th, td { border: 1px solid #ededed; padding: 2px 0; text-align: center; height: 25px; position: relative; }
 thead th { background-color: #fcfcfc; font-weight: bold; }
 
-/* [너비 재배분] 날짜는 한눈에 보이고, 비고란은 적당히 넓게 */
+/* 이미지 너비 비율 재현 */
 .col-info { width: 80px; }    
 .col-stat { width: 45px; }    
-.col-day  { width: 28px; }    /* 1~31일이 화면에 꽉 차게 들어오는 너비 */
-.col-note { width: 350px; }   /* 비고란 너비 (너무 크지 않게 조절) */
+.col-day  { width: 28px; }    
+.col-note { width: 350px; } /* 비고란: 31일 이후 스크롤로 확인 가능 */
 
 .txt-red { color: #d32f2f !important; font-weight: bold; }
 .bg-pink { background-color: #fff0f0 !important; }
