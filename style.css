@@ -1,36 +1,9 @@
-const GAN_URL = "https://script.google.com/macros/s/AKfycby42R57TUGVePyKRxfsFqeLuinCy0rxIVZudX2-Z1tERUpYCxJWw50EU0ZsqIrVGlWy/exec";
-let currentType = 'manager'; let currentMonth = 1; let masterData = { manager: [], staff: [] }; let lastFetchedAttendance = [];
-
-window.onload = () => { renderMonthPicker(); loadAllData(); };
-
-async function loadAllData() {
-    try {
-        const response = await fetch(GAN_URL);
-        const res = await response.json();
-        masterData.manager = []; masterData.staff = [];
-        if(res.config) {
-            const targetCol = 4 + (currentMonth - 1); 
-            res.config.slice(1).forEach(row => {
-                const p = { branch: row[1], name: row[2], req: row[3], unused: row[targetCol] || 0 };
-                if (row[0] === 'manager') masterData.manager.push(p);
-                else masterData.staff.push(p);
-            });
-        }
-        lastFetchedAttendance = res.attendance || [];
-        renderTable(lastFetchedAttendance);
-    } catch (e) { console.error("로드 실패"); }
-}
-
-function renderTable(attendance) {
-    document.getElementById('month-title').innerText = `${currentMonth}월 근태 현황`;
-    const tbody = document.getElementById('attendance-body');
-    const dateRow = document.getElementById('row-dates');
-    const weekRow = document/* 기본 디자인 유지 */
+/* 기본 배경 및 폰트 설정 */
 body { 
     font-family: 'Pretendard', sans-serif; 
     margin: 10px; 
     background-color: #f8f9fa; 
-    overflow-x: hidden; /* ★중요: 맨 밑바닥 브라우저 가로 스크롤을 강제로 숨깁니다 */
+    overflow-x: hidden; /* ★ 노란색 칠하신 바깥쪽 가로 스크롤바 강제 제거 */
 }
 
 .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
@@ -39,7 +12,7 @@ body {
 .month-btn { padding: 5px 10px; border: 1px solid #ccc; background: white; cursor: pointer; border-radius: 3px; font-size: 11px; }
 .month-btn.active { background: #d32f2f !important; color: white !important; border: none; }
 
-/* 표를 감싸는 영역 - 여기서만 스크롤이 생기게 함 */
+/* 표 컨테이너: 여기서만 스크롤 발생 */
 .table-container { 
     width: 100%; 
     overflow-x: auto; 
@@ -47,10 +20,9 @@ body {
     padding: 10px; 
     border-radius: 8px; 
     box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
-    box-sizing: border-box; /* 패딩이 전체 너비를 늘리지 않게 고정 */
+    box-sizing: border-box;
 }
 
-/* 표 설정 */
 table { 
     width: auto;      
     min-width: 100%;  
@@ -62,22 +34,22 @@ table {
 th, td { border: 1px solid #ededed; padding: 2px 0; text-align: center; height: 25px; position: relative; }
 thead th { background-color: #fcfcfc; font-weight: bold; }
 
-/* [너비 배분] 31일이 한 화면에 들어오는 수치입니다 */
-.col-info { width: 75px; }    
-.col-stat { width: 42px; }    
-.col-day  { width: 26px; }    /* 이 수치가 31일까지 화면에 딱 맞게 해줍니다 */
+/* [너비 정밀 세팅] 31일이 한 화면에 다 들어오는 황금 비율 */
+.col-info { width: 80px; }    /* 지점, 성명 */
+.col-stat { width: 45px; }    /* 필수/잔여 연차 등 */
+.col-day  { width: 27px; }    /* 1~31일 날짜 한 칸 */
 
-/* ★ 비고란: 충분히 넓게 주어 스크롤이 여기서만 작동하도록 유도 */
-.col-note { width: 500px; }   
+/* ★ 비고란: 아주 길게 설정하여 스크롤로 밀어서 보게 함 */
+.col-note { width: 450px; } 
 
 .txt-red { color: #d32f2f !important; font-weight: bold; }
 .bg-pink { background-color: #fff0f0 !important; }
+.at-cell { cursor: pointer; }
 
-/* 드롭박스/입력창 스타일 유지 */
+/* 입력창 및 드롭다운 스타일 */
 .at-cell select, .col-note input {
     width: 100%; height: 100%; border: none; background: transparent;
-    font-size: 11px; outline: none; box-sizing: border-box; padding: 0 5px;
+    font-size: 11px; outline: none; box-sizing: border-box; padding: 0 8px;
 }
 
 .footer-row td { background-color: #f8f9fa !important; color: #333 !important; font-weight: bold; }
-
