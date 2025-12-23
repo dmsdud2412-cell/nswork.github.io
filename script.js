@@ -40,6 +40,7 @@ function renderTable(attendance) {
     const holidayInfo = { 1: { 1: "신정" }, 2: { 16: "설날", 17: "설날", 18: "설날" }, 3: { 1: "삼일절" }, 5: { 5: "어린이날", 24: "석가탄신일" }, 6: { 6: "현충일" }, 8: { 15: "광복절" }, 10: { 3: "개천절", 9: "한글날" }, 12: { 25: "성탄절" } }[currentMonth] || {};
     const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
 
+    // 1일부터 31일까지 칸 생성
     for (let d = 1; d <= 31; d++) {
         const dateObj = new Date(2026, currentMonth - 1, d);
         const isExist = dateObj.getMonth() === currentMonth - 1;
@@ -58,6 +59,7 @@ function renderTable(attendance) {
         wRow.insertCell(-1).id = `work-count-${d}`;
     }
 
+    // 비고 헤더 (날짜 칸보다 넓게 설정됨)
     const noteTh = document.createElement('th');
     noteTh.innerText = "비고"; noteTh.className = 'col-note';
     dateRow.appendChild(noteTh);
@@ -89,7 +91,7 @@ function renderTable(attendance) {
         const noteTd = document.createElement('td');
         const noteMatch = attendance.find(r => r[0] == currentMonth && r[1] == currentType && r[2] == p.name && r[3] == 32);
         noteTd.className = 'col-note';
-        noteTd.innerHTML = `<input type="text" value="${noteMatch ? noteMatch[4] : ""}" placeholder="내용 입력" onchange="saveData(${currentMonth}, '${currentType}', '${p.name}', 32, this.value)">`;
+        noteTd.innerHTML = `<input type="text" value="${noteMatch ? noteMatch[4] : ""}" placeholder="사유 입력" onchange="saveData(${currentMonth}, '${currentType}', '${p.name}', 32, this.value)">`;
         tr.appendChild(noteTd);
         tbody.appendChild(tr);
     });
@@ -106,7 +108,6 @@ function applyStatusColor(cell, status) {
 function showDropdown(cell, day, name) {
     if (cell.querySelector('select')) return;
     const select = document.createElement('select');
-    select.style.cssText = "width:100%; border:none; background:transparent; font-size:11px; outline:none;";
     ['', '연차', '오전반차', '오후반차', '반반차', '휴가', '출장'].forEach(s => {
         const opt = document.createElement('option'); opt.value = s; opt.innerText = s || '-';
         if(s === cell.innerText) opt.selected = true;
