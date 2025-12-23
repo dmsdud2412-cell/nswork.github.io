@@ -16,7 +16,7 @@ table { width: auto; min-width: 100%; border-collapse: collapse; table-layout: f
 th, td { border: 1px solid #ededed; padding: 2px 0; text-align: center; height: 30px; position: relative; }
 thead th { background-color: #fcfcfc; font-weight: bold; }
 
-.col-info { width: 85px; }
+.col-info { width: 90px; }
 .col-stat { width: 58px; }
 .col-day  { width: 42px; }
 .col-note { width: 150px; }
@@ -68,6 +68,7 @@ thead th { background-color: #fcfcfc; font-weight: bold; }
 .at-cell select { width: 100%; height: 100%; border: none; background: transparent; font-size: 11px; outline: none; cursor: pointer; }
 
 .footer-row td { background-color: #f8f9fa !important; font-weight: bold; color: #333; }
+
 
 
 
