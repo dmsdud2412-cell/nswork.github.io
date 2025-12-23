@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>2026 근태 관리 시스템</title>
     <style>
-        /* [어제 디자인 100% 유지] */
+        /* [기본 디자인] */
         body { font-family: 'Pretendard', sans-serif; margin: 10px; background-color: #f8f9fa; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .tabs button { padding: 8px 20px; border: 1px solid #ddd; background: #eee; cursor: pointer; border-radius: 5px; font-weight: bold; }
@@ -13,27 +13,28 @@
         .month-btn.active { background: #d32f2f !important; color: white !important; border: none; }
 
         .table-container { background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow: hidden; }
+        
+        /* [핵심] 테이블 고정 및 한 화면 출력 설정 */
         table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 11px; }
         th, td { border: 1px solid #ededed; padding: 2px 0; text-align: center; height: 22px; }
         thead th { background-color: #fcfcfc; font-weight: bold; }
 
         /* -----------------------------------------------------------
-           [비율 조정 핵심] 
-           1~31일(.col-day)을 아주 좁게(1.1%) 설정하여 왼쪽으로 바짝 붙이고, 
-           남은 공간(45%)을 비고란(.col-note)에 다 주었습니다.
+           [관리자님 요청 비율 반영] 
+           1~31일(.col-day)은 촘촘하게, 
+           비고(.col-note)는 날짜 1칸의 약 3.5배 너비로 설정
         ----------------------------------------------------------- */
-        .col-info { width: 5.5%; }    /* 지점, 성명 */
-        .col-stat { width: 3.2%; }    /* 통계 정보 */
-        .col-day  { width: 1.15%; }   /* 1~31일 (숫자만 겨우 보일 정도로 좁게) */
-        .col-note { width: 45%; }     /* 비고 (사진 크기의 절반, 31일 바로 옆에 붙음) */
+        .col-info { width: 6%; }    /* 지점, 성명 */
+        .col-stat { width: 3.5%; }  /* 통계 정보 (필수, 전월 등) */
+        .col-day  { width: 1.7%; }  /* 1~31일 각 칸의 너비 */
+        .col-note { width: 6.5%; }  /* ★비고 (날짜 칸의 약 3.8배 크기) */
 
         .txt-red { color: #d32f2f !important; font-weight: bold; }
         .bg-pink { background-color: #fff0f0 !important; }
         .at-cell { cursor: pointer; }
         .at-cell:hover { background-color: #f1f3f5; }
 
-        /* [어제와 동일] 입력창 및 드롭다운 스타일 */
-        .col-note input, select { width: 100%; border: none; background: transparent; font-size: 11px; outline: none; padding: 0 8px; box-sizing: border-box; }
+        .col-note input, select { width: 100%; border: none; background: transparent; font-size: 11px; outline: none; padding: 0 4px; box-sizing: border-box; }
         .footer-row td { background-color: #f8f9fa !important; color: #333 !important; font-weight: bold; }
     </style>
 </head>
@@ -96,7 +97,7 @@
                 }
                 lastFetchedAttendance = res.attendance || [];
                 renderTable(lastFetchedAttendance);
-            } catch (e) { console.error("데이터 로드 실패"); }
+            } catch (e) { console.error("로드 실패"); }
         }
 
         function renderTable(attendance) {
@@ -115,7 +116,7 @@
             const holidayInfo = { 1: { 1: "신정" }, 2: { 16: "설날", 17: "설날", 18: "설날" }, 3: { 1: "삼일절" }, 5: { 5: "어린이날", 24: "석가탄신일" }, 6: { 6: "현충일" }, 8: { 15: "광복절" }, 10: { 3: "개천절", 9: "한글날" }, 12: { 25: "성탄절" } }[currentMonth] || {};
             const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
 
-            // 1일부터 31일까지 모두 생성
+            // 1~31일 칸 생성
             for (let d = 1; d <= 31; d++) {
                 const dateObj = new Date(2026, currentMonth - 1, d);
                 const isExist = dateObj.getMonth() === currentMonth - 1;
@@ -133,7 +134,7 @@
                 vRow.insertCell(-1).id = `vac-count-${d}`; wRow.insertCell(-1).id = `work-count-${d}`;
             }
 
-            // 비고 칸 추가 (31일 바로 옆)
+            // 비고 칸 추가
             const noteTh = document.createElement('th');
             noteTh.innerText = "비고"; noteTh.className = 'col-note';
             dateRow.appendChild(noteTh);
@@ -228,11 +229,6 @@
                 btn.className = `month-btn ${m === currentMonth ? 'active' : ''}`;
                 btn.onclick = () => { currentMonth = m; renderMonthPicker(); loadAllData(); };
                 container.appendChild(btn);
-            }
-            if (!document.getElementById('btn-excel')) {
-                const btn = document.createElement('button'); btn.id = 'btn-excel'; btn.innerText = '엑셀 저장 📥';
-                btn.style.cssText = "margin-left:20px; background:#2e7d32; color:white; border:none; padding:5px 12px; cursor:pointer; border-radius:4px; font-weight:bold; font-size:12px;";
-                btn.onclick = () => { /* 엑셀 저장 */ }; container.appendChild(btn);
             }
         }
 
