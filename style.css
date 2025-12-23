@@ -1,3 +1,4 @@
+/* 기본 디자인 유지 */
 body { font-family: 'Pretendard', sans-serif; margin: 10px; background-color: #f8f9fa; }
 .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
 .tabs button { padding: 8px 20px; border: 1px solid #ddd; background: #eee; cursor: pointer; border-radius: 5px; font-weight: bold; }
@@ -7,21 +8,21 @@ body { font-family: 'Pretendard', sans-serif; margin: 10px; background-color: #f
 
 .table-container { background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow: hidden; }
 table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 11px; }
-th, td { border: 1px solid #ededed; padding: 2px 0; text-align: center; height: 22px; position: relative; } /* position 추가로 드롭다운 고정 */
+th, td { border: 1px solid #ededed; padding: 2px 0; text-align: center; height: 22px; position: relative; }
 thead th { background-color: #fcfcfc; font-weight: bold; }
 
-/* [비율 정밀 조정] 한글 10자가 딱 보일 수 있는 비중으로 나눴습니다 */
-.col-info { width: 5.5%; }    
-.col-stat { width: 3.5%; }    
-.col-day  { width: 1.45%; }   
-.col-note { width: 12.5%; }   /* ★ "ㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇ" 길이에 최적화 */
+/* [비중 재설정] 지점/성명을 더 줄이고 비고(18%)를 대폭 늘렸습니다 */
+.col-info { width: 5%; }    /* 지점, 성명 */
+.col-stat { width: 3%; }    /* 통계 */
+.col-day  { width: 1.4%; }  /* 날짜 */
+.col-note { width: 18%; }   /* ★ "ㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇ"이 충분히 들어가는 너비 */
 
 .txt-red { color: #d32f2f !important; font-weight: bold; }
 .bg-pink { background-color: #fff0f0 !important; }
 .at-cell { cursor: pointer; }
 .at-cell:hover { background-color: #f1f3f5; }
 
-/* 드롭다운이 칸을 절대 벗어나지 않게 고정 */
+/* 드롭박스가 칸 크기에 딱 맞게 고정 (절대 안 튀어나감) */
 .at-cell select {
     width: 100%;
     height: 100%;
@@ -30,13 +31,12 @@ thead th { background-color: #fcfcfc; font-weight: bold; }
     background: #ffffff;
     outline: none;
     box-sizing: border-box; 
-    padding: 0;
-    margin: 0;
 }
 
+/* 비고 입력창 왼쪽 정렬 및 여백 */
 .col-note input { 
     width: 100%; border: none; background: transparent; 
-    font-size: 11px; outline: none; padding: 0 5px; 
+    font-size: 11px; outline: none; padding: 0 8px; 
     box-sizing: border-box; text-align: left; 
 }
 .footer-row td { background-color: #f8f9fa !important; color: #333 !important; font-weight: bold; }
