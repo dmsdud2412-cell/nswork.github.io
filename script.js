@@ -18,7 +18,7 @@ async function loadAllData() {
         }
         lastFetchedAttendance = res.attendance || [];
         renderTable(lastFetchedAttendance);
-    } catch (e) { console.error("데이터 로드 실패"); }
+    } catch (e) { console.error("로드 실패"); }
 }
 
 function renderTable(attendance) {
@@ -30,6 +30,7 @@ function renderTable(attendance) {
     const vRow = document.getElementById('row-vacation');
     const wRow = document.getElementById('row-working');
 
+    // 초기화
     tbody.innerHTML = ''; dateRow.innerHTML = ''; weekRow.innerHTML = ''; holidayRow.innerHTML = '';
     while(vRow.cells.length > 1) vRow.deleteCell(1);
     while(wRow.cells.length > 1) wRow.deleteCell(1);
@@ -37,39 +38,49 @@ function renderTable(attendance) {
     const holidayInfo = { 1: { 1: "신정" }, 2: { 16: "설날", 17: "설날", 18: "설날" }, 3: { 1: "삼일절" }, 5: { 5: "어린이날", 24: "석가탄신일" }, 6: { 6: "현충일" }, 8: { 15: "광복절" }, 10: { 3: "개천절", 9: "한글날" }, 12: { 25: "성탄절" } }[currentMonth] || {};
     const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
 
-    // 1~31일 날짜 생성 루프
+    // 1. 1~31일까지 칸 만들기 (헤더 3줄 + 푸터 2줄 동시에)
     for (let d = 1; d <= 31; d++) {
         const dateObj = new Date(2026, currentMonth - 1, d);
         const isExist = dateObj.getMonth() === currentMonth - 1;
+        
         const thD = document.createElement('th'); thD.className = 'col-day';
         const thW = document.createElement('th'); thW.className = 'col-day';
         const thH = document.createElement('th'); thH.className = 'col-day';
+
         if (isExist) {
             const dayIdx = dateObj.getDay();
             const hName = holidayInfo[d] || "";
             thD.innerText = d; thW.innerText = weekDays[dayIdx]; thH.innerText = hName;
             if(dayIdx === 0 || dayIdx === 6 || hName !== "") [thD, thW, thH].forEach(el => el.classList.add('txt-red'));
         }
-        dateRow.appendChild(thD); weekRow.appendChild(thW); holidayRow.appendChild(thH);
-        vRow.insertCell(-1).id = `vac-count-${d}`; wRow.insertCell(-1).id = `work-count-${d}`;
+        dateRow.appendChild(thD);
+        weekRow.appendChild(thW);
+        holidayRow.appendChild(thH);
+        
+        vRow.insertCell(-1).id = `vac-count-${d}`;
+        wRow.insertCell(-1).id = `work-count-${d}`;
     }
 
-    // ★ 비고 헤더 행 통합 (Rowspan=4)
+    // 2. 비고 헤더 통합 (rowSpan=4는 첫 번째 행에만 추가)
     const noteTh = document.createElement('th');
     noteTh.innerText = "비고";
     noteTh.className = 'col-note';
     noteTh.rowSpan = 4; 
+    // HTML 구조상 '1월 근태 현황' 타이틀이 있는 곳과 같은 레벨인 dateRow에 추가해야 합니다.
+    // 하지만 현재 HTML은 dateRow가 1,2,3...숫자 행이므로 여기에 추가하면 이미지처럼 날짜 끝에 붙습니다.
     dateRow.appendChild(noteTh);
 
-    // 하단 푸터 비고란 라인 맞춤
+    // 3. 하단 푸터 비고 칸 추가 (라인 맞춤)
     vRow.insertCell(-1).className = 'col-note';
     wRow.insertCell(-1).className = 'col-note';
 
+    // 4. 본문 데이터 생성
     const list = (currentType === 'manager') ? masterData.manager : masterData.staff;
     list.forEach(p => {
         const tr = document.createElement('tr');
         tr.setAttribute('data-person', p.name);
         tr.innerHTML = `<td>${p.branch}</td><td>${p.name}</td><td>${p.req}</td><td>${p.unused}</td><td id="rem-${p.name}">${p.unused}</td><td id="rate-${p.name}">0%</td>`;
+        
         for (let i = 1; i <= 31; i++) {
             const dateObj = new Date(2026, currentMonth - 1, i);
             const isExist = dateObj.getMonth() === currentMonth - 1;
@@ -150,15 +161,4 @@ function renderMonthPicker() {
     const container = document.getElementById('month-picker'); container.innerHTML = '';
     for (let m = 1; m <= 12; m++) {
         const btn = document.createElement('button'); btn.innerText = m + '월';
-        btn.className = `month-btn ${m === currentMonth ? 'active' : ''}`;
-        btn.onclick = () => { currentMonth = m; renderMonthPicker(); loadAllData(); };
-        container.appendChild(btn);
-    }
-}
-
-function switchTab(type) {
-    currentType = type;
-    document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
-    document.getElementById(`btn-${type}`).classList.add('active');
-    renderTable(lastFetchedAttendance);
-}
+        btn.className =
