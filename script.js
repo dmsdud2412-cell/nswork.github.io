@@ -37,6 +37,7 @@ function renderTable(attendance) {
     const holidayInfo = { 1: { 1: "신정" }, 2: { 16: "설날", 17: "설날", 18: "설날" }, 3: { 1: "삼일절" }, 5: { 5: "어린이날", 24: "석가탄신일" }, 6: { 6: "현충일" }, 8: { 15: "광복절" }, 10: { 3: "개천절", 9: "한글날" }, 12: { 25: "성탄절" } }[currentMonth] || {};
     const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
 
+    // 1~31일 날짜 생성 루프
     for (let d = 1; d <= 31; d++) {
         const dateObj = new Date(2026, currentMonth - 1, d);
         const isExist = dateObj.getMonth() === currentMonth - 1;
@@ -53,12 +54,16 @@ function renderTable(attendance) {
         vRow.insertCell(-1).id = `vac-count-${d}`; wRow.insertCell(-1).id = `work-count-${d}`;
     }
 
+    // ★ 비고 헤더 행 통합 (Rowspan=4)
     const noteTh = document.createElement('th');
-    noteTh.innerText = "비고"; noteTh.className = 'col-note';
+    noteTh.innerText = "비고";
+    noteTh.className = 'col-note';
+    noteTh.rowSpan = 4; 
     dateRow.appendChild(noteTh);
-    weekRow.appendChild(document.createElement('th'));
-    holidayRow.appendChild(document.createElement('th'));
-    vRow.insertCell(-1); wRow.insertCell(-1);
+
+    // 하단 푸터 비고란 라인 맞춤
+    vRow.insertCell(-1).className = 'col-note';
+    wRow.insertCell(-1).className = 'col-note';
 
     const list = (currentType === 'manager') ? masterData.manager : masterData.staff;
     list.forEach(p => {
@@ -82,7 +87,7 @@ function renderTable(attendance) {
         const noteTd = document.createElement('td');
         const noteMatch = attendance.find(r => r[0] == currentMonth && r[1] == currentType && r[2] == p.name && r[3] == 32);
         noteTd.className = 'col-note';
-        noteTd.innerHTML = `<input type="text" value="${noteMatch ? noteMatch[4] : ""}" placeholder="비고" onchange="saveData(${currentMonth}, '${currentType}', '${p.name}', 32, this.value)">`;
+        noteTd.innerHTML = `<input type="text" value="${noteMatch ? noteMatch[4] : ""}" placeholder="비고 입력" onchange="saveData(${currentMonth}, '${currentType}', '${p.name}', 32, this.value)">`;
         tr.appendChild(noteTd);
         tbody.appendChild(tr);
     });
