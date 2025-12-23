@@ -2,67 +2,20 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2026 근태 관리 시스템</title>
-    <style>
-        body { font-family: 'Pretendard', sans-serif; margin: 10px; background-color: #f8f9fa; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .tabs button { padding: 8px 20px; border: 1px solid #ddd; background: #eee; cursor: pointer; border-radius: 5px; font-weight: bold; }
-        .tabs button.active { background: #d32f2f; color: white; border-color: #d32f2f; }
-        
-        .table-container { 
-            background: white; 
-            padding: 10px; 
-            border-radius: 8px; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
-            overflow: hidden; 
-        }
-
-        table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            table-layout: fixed; /* 비율 고정 */
-            font-size: 11px;
-        }
-
-        th, td { border: 1px solid #ededed; padding: 2px 0; text-align: center; height: 22px; }
-        thead th { background-color: #fcfcfc; font-weight: bold; }
-
-        /* [핵심 수정] 비고란이 30일 옆에 붙도록 비율 조정 */
-        .col-info { width: 5.5%; }    /* 지점, 성명 */
-        .col-stat { width: 3.2%; }    /* 연차 통계 정보 */
-        .col-day  { width: 1.15%; }   /* 1~31일 (간격을 더 좁혀 비고란을 왼쪽으로 당김) */
-        .col-note { width: 45%; }     /* 비고 (처음 광활했던 크기의 절반 수준으로 넉넉하게 확대) */
-
-        .txt-red { color: #d32f2f !important; font-weight: bold; }
-        .bg-pink { background-color: #fff0f0 !important; }
-        
-        .at-cell { cursor: pointer; transition: background 0.2s; }
-        .at-cell:hover { background-color: #f1f3f5; }
-
-        .footer-row td { background-color: #f8f9fa !important; color: #333 !important; font-weight: bold; }
-        
-        .col-note input {
-            width: 100%;
-            border: none;
-            background: transparent;
-            font-size: 11px;
-            outline: none;
-            font-family: inherit;
-            padding: 0 8px;
-            box-sizing: border-box;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="header">
-        <h1 style="font-size: 20px;">🗓️ 2026 근태 관리</h1>
+        <h1>🗓️ 2026 근태 관리</h1>
         <div class="tabs">
             <button id="btn-manager" class="active" onclick="switchTab('manager')">지점장</button>
             <button id="btn-staff" onclick="switchTab('staff')">직원</button>
         </div>
     </div>
 
-    <div id="month-picker" style="display: flex; justify-content: center; gap: 4px; margin-bottom: 15px;"></div>
+    <div id="month-picker" class="month-container"></div>
 
     <div class="table-container">
         <table>
