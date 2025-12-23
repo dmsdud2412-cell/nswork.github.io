@@ -18,7 +18,7 @@ async function loadAllData() {
         }
         lastFetchedAttendance = res.attendance || [];
         renderTable(lastFetchedAttendance);
-    } catch (e) { console.error("데이터 로드 실패"); }
+    } catch (e) { console.error("로드 실패"); }
 }
 
 function renderTable(attendance) {
@@ -56,14 +56,13 @@ function renderTable(attendance) {
         const tr = document.createElement('tr');
         tr.setAttribute('data-person', p.name);
         tr.innerHTML = `<td>${p.branch}</td><td>${p.name}</td><td>${p.req}</td><td>${p.unused}</td><td id="rem-${p.name}">${p.unused}</td><td id="rate-${p.name}">0%</td>`;
-        
         for (let i = 1; i <= 31; i++) {
             const td = document.createElement('td'); td.className = 'at-cell col-day';
             const dateObj = new Date(2026, currentMonth - 1, i);
             if (dateObj.getMonth() === currentMonth - 1) {
                 if (dateObj.getDay() === 0 || dateObj.getDay() === 6 || holidayInfo[i]) td.classList.add('bg-pink');
                 const match = attendance.find(r => r[0] == currentMonth && r[1] == currentType && r[2] == p.name && r[3] == i);
-                td.innerText = match ? (match[4] || "") : ""; // ★ undefined 방지
+                td.innerText = match ? (match[4] || "") : "";
                 if(td.innerText) applyStatusColor(td, td.innerText);
                 td.setAttribute('data-day', i);
                 td.onclick = function() { showDropdown(this, i, p.name); };
@@ -73,7 +72,6 @@ function renderTable(attendance) {
         const noteTd = document.createElement('td');
         const noteMatch = attendance.find(r => r[0] == currentMonth && r[1] == currentType && r[2] == p.name && r[3] == 32);
         noteTd.className = 'col-note';
-        // ★ 비고란 undefined 방지 및 텍스트박스 테두리 제거 확인
         noteTd.innerHTML = `<input type="text" value="${noteMatch ? (noteMatch[4] || "") : ""}" placeholder="비고 입력" onchange="saveData(${currentMonth}, '${currentType}', '${p.name}', 32, this.value)">`;
         tr.appendChild(noteTd);
         tbody.appendChild(tr);
@@ -89,7 +87,7 @@ function applyStatusColor(cell, status) {
 function showDropdown(cell, day, name) {
     if (cell.querySelector('select')) return;
     const select = document.createElement('select');
-    ['', '연차', '오전반차', '오후반차', '반반차', '휴가', '출장', '교육'].forEach(s => {
+    ['', '연차', '오전반차', '오후반차', '반반차', '휴가', '출장'].forEach(s => {
         const opt = document.createElement('option'); opt.value = s; opt.innerText = s || '-';
         if(s === cell.innerText) opt.selected = true;
         select.appendChild(opt);
@@ -151,4 +149,3 @@ function downloadExcel() {
     const wb = XLSX.utils.table_to_book(table, {sheet: "근태현황"});
     XLSX.writeFile(wb, `${currentMonth}월_근태현황_${currentType}.xlsx`);
 }
-
