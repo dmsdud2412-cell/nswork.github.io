@@ -10,7 +10,7 @@ let lastFetchedAttendance = [];
 
 window.onload = () => { renderMonthPicker(); loadAllData(); };
 
-// [엑셀 저장] 버튼 디자인 및 기능
+// [기존] 엑셀 저장 기능 (디자인 보존)
 function addExcelButton() {
     if (document.getElementById('btn-excel')) return;
     const container = document.getElementById('month-picker');
@@ -40,7 +40,7 @@ function downloadExcel() {
     document.body.removeChild(link);
 }
 
-// [데이터 로드] 이미지의 시트 구조 반영
+// [기존] 월별 시트 열 참조 로직 (E열~P열)
 async function loadAllData() {
     try {
         const response = await fetch(GAN_URL);
@@ -48,22 +48,17 @@ async function loadAllData() {
         masterData.manager = []; masterData.staff = [];
         
         if(res.config) {
-            // [중요] 보내주신 이미지 기준 인덱스 계산
-            // D열(부여연차) = index 3
-            // E열(1월 미사용) = index 4, F열(2월 미사용) = index 5 ...
+            // E열(index 4)부터 월별 미사용 데이터 시작
             const targetColumnIndex = 4 + (currentMonth - 1); 
-
             res.config.slice(1).forEach(row => {
                 const bName = row[1] || "";
                 if (myBranch && bName !== myBranch) return; 
-                
                 const p = { 
                     branch: bName, 
                     name: row[2] || "", 
-                    req: row[3] || 0, // D열(부여연차) 고정 참조
-                    unused: row[targetColumnIndex] || 0 // 월별 미사용 열(E~P열) 가변 참조
+                    req: row[3] || 0, 
+                    unused: row[targetColumnIndex] || 0 
                 };
-                
                 if (row[0] === 'manager') masterData.manager.push(p);
                 else masterData.staff.push(p);
             });
@@ -74,7 +69,6 @@ async function loadAllData() {
 }
 
 function renderTable(attendance) {
-    // 테이블 내 제목(th id="month-title") 변경
     const titleEl = document.getElementById('month-title');
     if (titleEl) { titleEl.innerText = `${currentMonth}월 근태 현황`; }
 
@@ -94,6 +88,7 @@ function renderTable(attendance) {
     const holidayInfo = { 1: { 1: "신정" }, 2: { 16: "설날", 17: "설날", 18: "설날" }, 3: { 1: "삼일절", 2: "대체공휴일" }, 5: { 5: "어린이날", 24: "석가탄신일", 25: "대체공휴일" }, 6: { 6: "현충일" }, 8: { 15: "광복절", 17: "대체공휴일" }, 9: { 24: "추석", 25: "추석", 26: "추석", 28: "대체공휴일" }, 10: { 3: "개천절", 5: "대체공휴일", 9: "한글날" }, 12: { 25: "성탄절" } }[currentMonth] || {};
     const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
 
+    // 1~31일 헤더 생성
     for (let d = 1; d <= 31; d++) {
         const dateObj = new Date(2026, currentMonth - 1, d);
         const isExist = dateObj.getMonth() === currentMonth - 1;
@@ -111,11 +106,22 @@ function renderTable(attendance) {
         wRow.insertCell(-1).id = `work-count-${d}`;
     }
 
+    // [추가] 비고 열 헤더 (디자인 유지를 위해 31일 바로 옆에 생성)
+    const noteTh = document.createElement('th');
+    noteTh.innerText = "비고 (출장 사유 등)";
+    noteTh.style.minWidth = "150px"; 
+    dateRow.appendChild(noteTh);
+    weekRow.appendChild(document.createElement('th'));
+    holidayRow.appendChild(document.createElement('th'));
+    vRow.insertCell(-1); wRow.insertCell(-1);
+
     const list = (currentType === 'manager') ? masterData.manager : masterData.staff;
     list.forEach(p => {
         const tr = document.createElement('tr');
         tr.setAttribute('data-person', p.name);
         tr.innerHTML = `<td>${p.branch}</td><td>${p.name}</td><td>${p.req}</td><td>${p.unused}</td><td id="rem-${p.name}">${p.unused}</td><td id="rate-${p.name}">0%</td>`;
+        
+        // 1~31일 셀 생성 및 데이터 매칭
         for (let i = 1; i <= 31; i++) {
             const dateObj = new Date(2026, currentMonth - 1, i);
             const isExist = dateObj.getMonth() === currentMonth - 1;
@@ -126,21 +132,41 @@ function renderTable(attendance) {
                 const match = attendance.find(r => r[0] == currentMonth && r[1] == currentType && r[2] == p.name && r[3] == i);
                 const status = (match && match[4]) ? match[4] : "";
                 td.innerText = status;
-                if(status) {
-                    td.style.fontWeight = "bold";
-                    if(status === '연차' || status === '휴가') td.style.color = "#d32f2f";
-                    else if(status === '출장') td.style.color = "#000000";
-                    else if(status.includes('반차')) td.style.color = "#ef6c00";
-                    else if(status === '반반차') td.style.color = "#4caf50";
-                }
+                if(status) applyStatusColor(td, status);
                 td.setAttribute('data-day', i);
                 td.onclick = function() { showDropdown(this); };
             }
             tr.appendChild(td);
         }
+
+        // [추가] 비고 입력 셀 (day=32로 처리하여 저장)
+        const noteTd = document.createElement('td');
+        const noteMatch = attendance.find(r => r[0] == currentMonth && r[1] == currentType && r[2] == p.name && r[3] == 32);
+        const noteValue = noteMatch ? noteMatch[4] : "";
+        noteTd.innerHTML = `<input type="text" value="${noteValue}" style="width:90%; border:none; background:transparent; font-size:11px; text-align:left; outline:none;" placeholder="내용 입력">`;
+        const input = noteTd.querySelector('input');
+        input.onchange = function() {
+            saveData(currentMonth, currentType, p.name, 32, this.value);
+        };
+        tr.appendChild(noteTd);
         tbody.appendChild(tr);
     });
     updateCounts();
+}
+
+function applyStatusColor(cell, status) {
+    cell.style.color = ""; cell.style.fontWeight = "bold";
+    if(status === '연차' || status === '휴가') cell.style.color = "#d32f2f";
+    else if(status === '출장') cell.style.color = "#000000";
+    else if(status.includes('반차')) cell.style.color = "#ef6c00";
+    else if(status === '반반차') cell.style.color = "#4caf50";
+}
+
+async function saveData(month, type, name, day, status) {
+    fetch(GAN_URL, {
+        method: "POST", mode: "no-cors",
+        body: JSON.stringify({ month: parseInt(month), type: type, name: name, day: parseInt(day), status: status })
+    });
 }
 
 function showDropdown(cell) {
@@ -157,20 +183,19 @@ function showDropdown(cell) {
     });
     cell.innerText = ''; cell.appendChild(select);
     select.focus();
-    select.onchange = async function() {
+    select.onchange = function() {
         const newStatus = this.value;
         const day = cell.getAttribute('data-day');
         const name = cell.parentElement.getAttribute('data-person');
         cell.innerText = newStatus;
+        applyStatusColor(cell, newStatus);
         updateCounts(); 
-        fetch(GAN_URL, {
-            method: "POST", mode: "no-cors",
-            body: JSON.stringify({ month: parseInt(currentMonth), type: currentType, name: name, day: parseInt(day), status: newStatus })
-        });
+        saveData(currentMonth, currentType, name, day, newStatus);
     };
     select.onblur = function() { if (cell.contains(this)) cell.innerText = this.value; };
 }
 
+// [기존] 반반차 0.25 계산 로직 유지
 function updateCounts() {
     const rows = document.querySelectorAll('#attendance-body tr');
     const dailyVacationCount = Array(32).fill(0);
