@@ -18,7 +18,7 @@ async function loadAllData() {
         }
         lastFetchedAttendance = res.attendance || [];
         renderTable(lastFetchedAttendance);
-    } catch (e) { console.error("데이터 로드 실패"); }
+    } catch (e) { console.error("로드 실패"); }
 }
 
 function renderTable(attendance) {
@@ -110,6 +110,9 @@ function showDropdown(cell, day, name) {
     select.onchange = function() {
         cell.innerText = this.value; applyStatusColor(cell, this.value);
         saveData(currentMonth, currentType, name, day, this.value); updateCounts();
+    };
+    cell.onblur = function() { // 칸 밖을 누르면 선택창 사라지게
+        cell.innerText = this.value; applyStatusColor(cell, this.value);
     };
     cell.innerHTML = ''; cell.appendChild(select); select.focus();
 }
