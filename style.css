@@ -7,22 +7,27 @@ body { font-family: 'Pretendard', sans-serif; margin: 10px; background-color: #f
 .month-btn.active { background: #d32f2f !important; color: white !important; border: none; }
 
 .table-container { background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow: hidden; }
+
+/* table-layout: fixed는 유지하되 비율을 파격적으로 조정합니다 */
 table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 11px; }
 th, td { border: 1px solid #ededed; padding: 2px 0; text-align: center; height: 22px; position: relative; }
 thead th { background-color: #fcfcfc; font-weight: bold; }
 
-/* [비중 재설정] 지점/성명을 더 줄이고 비고(18%)를 대폭 늘렸습니다 */
-.col-info { width: 5%; }    /* 지점, 성명 */
-.col-stat { width: 3%; }    /* 통계 */
-.col-day  { width: 1.4%; }  /* 날짜 */
-.col-note { width: 18%; }   /* ★ "ㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇ"이 충분히 들어가는 너비 */
+/* [핵심: 비고란 공간 확보를 위한 강제 다이어트]
+   날짜 1칸(1.3%)은 숫자와 요일만 겨우 들어갈 정도입니다. 
+   대신 비고란을 20%까지 늘려 "ㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇ" 공간을 확보했습니다.
+*/
+.col-info { width: 4.5%; }    /* 지점, 성명 줄임 */
+.col-stat { width: 3.0%; }    /* 통계 칸 줄임 */
+.col-day  { width: 1.3%; }    /* 날짜 칸 최소화 (가장 중요) */
+.col-note { width: 20%; }     /* ★ 비고란 대폭 확대 (전체 표의 1/5 수준) */
 
 .txt-red { color: #d32f2f !important; font-weight: bold; }
 .bg-pink { background-color: #fff0f0 !important; }
 .at-cell { cursor: pointer; }
 .at-cell:hover { background-color: #f1f3f5; }
 
-/* 드롭박스가 칸 크기에 딱 맞게 고정 (절대 안 튀어나감) */
+/* 드롭다운 박스 크기 고정 */
 .at-cell select {
     width: 100%;
     height: 100%;
@@ -33,10 +38,16 @@ thead th { background-color: #fcfcfc; font-weight: bold; }
     box-sizing: border-box; 
 }
 
-/* 비고 입력창 왼쪽 정렬 및 여백 */
+/* 비고란 입력 스타일 */
 .col-note input { 
-    width: 100%; border: none; background: transparent; 
-    font-size: 11px; outline: none; padding: 0 8px; 
-    box-sizing: border-box; text-align: left; 
+    width: 100%; 
+    border: none; 
+    background: transparent; 
+    font-size: 11px; 
+    outline: none; 
+    padding: 0 10px; 
+    box-sizing: border-box; 
+    text-align: left; 
 }
+
 .footer-row td { background-color: #f8f9fa !important; color: #333 !important; font-weight: bold; }
