@@ -10,7 +10,7 @@ let lastFetchedAttendance = [];
 
 window.onload = () => { renderMonthPicker(); loadAllData(); };
 
-// [기존 기능] 엑셀 저장 버튼 추가
+// 엑셀 저장 버튼
 function addExcelButton() {
     if (document.getElementById('btn-excel')) return;
     const container = document.getElementById('month-picker');
@@ -23,7 +23,6 @@ function addExcelButton() {
     container.appendChild(btn);
 }
 
-// [기존 기능] 엑셀 다운로드 로직
 function downloadExcel() {
     const table = document.querySelector('table'); 
     if (!table) return;
@@ -41,7 +40,7 @@ function downloadExcel() {
     document.body.removeChild(link);
 }
 
-// [기존 기능] 구글 시트 데이터 로드
+// 데이터 로드
 async function loadAllData() {
     try {
         const response = await fetch(GAN_URL);
@@ -59,7 +58,7 @@ async function loadAllData() {
         }
         lastFetchedAttendance = res.attendance || [];
         renderTable(lastFetchedAttendance);
-    } catch (e) { console.error("로드 실패"); }
+    } catch (e) { console.error("데이터 로드 실패"); }
 }
 
 function renderTable(attendance) {
@@ -80,6 +79,7 @@ function renderTable(attendance) {
     const holidayInfo = { 1: { 1: "신정" }, 2: { 16: "설날", 17: "설날", 18: "설날" }, 3: { 1: "삼일절", 2: "대체공휴일" }, 5: { 5: "어린이날", 24: "석가탄신일", 25: "대체공휴일" }, 6: { 6: "현충일" }, 8: { 15: "광복절", 17: "대체공휴일" }, 9: { 24: "추석", 25: "추석", 26: "추석", 28: "대체공휴일" }, 10: { 3: "개천절", 5: "대체공휴일", 9: "한글날" }, 12: { 25: "성탄절" } }[currentMonth] || {};
     const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
 
+    // 1~31일 칸 생성
     for (let d = 1; d <= 31; d++) {
         const dateObj = new Date(2026, currentMonth - 1, d);
         const isExist = dateObj.getMonth() === currentMonth - 1;
@@ -87,7 +87,6 @@ function renderTable(attendance) {
         const thW = document.createElement('th');
         const thH = document.createElement('th');
         
-        // 날짜 칸 클래스 지정
         thD.className = 'col-day'; thW.className = 'col-day'; thH.className = 'col-day';
 
         if (isExist) {
@@ -101,7 +100,7 @@ function renderTable(attendance) {
         wRow.insertCell(-1).id = `work-count-${d}`;
     }
 
-    // [비고 헤더] CSS 클래스 col-note(30%) 적용
+    // [비고 헤더] 확대된 너비(45%) 적용
     const noteTh = document.createElement('th');
     noteTh.innerText = "비고";
     noteTh.className = 'col-note'; 
@@ -133,7 +132,7 @@ function renderTable(attendance) {
             tr.appendChild(td);
         }
 
-        // [비고 데이터 칸] CSS 클래스 col-note(30%) 적용
+        // [비고 입력 칸] 확대된 너비(45%) 적용
         const noteTd = document.createElement('td');
         const noteMatch = attendance.find(r => r[0] == currentMonth && r[1] == currentType && r[2] == p.name && r[3] == 32);
         const noteValue = noteMatch ? noteMatch[4] : "";
@@ -141,7 +140,6 @@ function renderTable(attendance) {
         noteTd.className = 'col-note';
         noteTd.style.textAlign = "left";
         noteTd.style.padding = "0 8px";
-
         noteTd.innerHTML = `<input type="text" value="${noteValue}" 
             style="width: 100%; border:none; background:transparent; font-size:11px; outline:none; font-family:inherit;" 
             placeholder="내용 입력">`;
@@ -156,7 +154,7 @@ function renderTable(attendance) {
     updateCounts();
 }
 
-// [기존 기능] 상태별 글자색 적용
+// (이하 applyStatusColor, saveData, showDropdown, updateCounts, renderMonthPicker, switchTab 함수는 기존과 동일)
 function applyStatusColor(cell, status) {
     cell.style.color = ""; cell.style.fontWeight = "bold";
     if(status === '연차' || status === '휴가') cell.style.color = "#d32f2f";
@@ -165,12 +163,10 @@ function applyStatusColor(cell, status) {
     else if(status === '반반차') cell.style.color = "#4caf50";
 }
 
-// [기존 기능] 구글 시트 데이터 저장
 async function saveData(month, type, name, day, status) {
     fetch(GAN_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ month: parseInt(month), type: type, name: name, day: parseInt(day), status: status }) });
 }
 
-// [기존 기능] 드롭다운 메뉴
 function showDropdown(cell) {
     if (cell.querySelector('select')) return;
     const currentStatus = cell.innerText;
@@ -197,7 +193,6 @@ function showDropdown(cell) {
     select.onblur = function() { if (cell.contains(this)) cell.innerText = this.value; };
 }
 
-// [기존 기능] 연차 차감 및 통계 업데이트 (반반차 0.25 계산 포함)
 function updateCounts() {
     const rows = document.querySelectorAll('#attendance-body tr');
     const dailyVacationCount = Array(33).fill(0);
