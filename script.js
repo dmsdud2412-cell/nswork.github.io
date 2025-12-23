@@ -18,7 +18,7 @@ async function loadAllData() {
         }
         lastFetchedAttendance = res.attendance || [];
         renderTable(lastFetchedAttendance);
-    } catch (e) { console.error("로드 실패"); }
+    } catch (e) { console.error("데이터 로드 실패"); }
 }
 
 function renderTable(attendance) {
@@ -53,16 +53,12 @@ function renderTable(attendance) {
         vRow.insertCell(-1).id = `vac-count-${d}`; wRow.insertCell(-1).id = `work-count-${d}`;
     }
 
-    // [핵심 수정] 비고란 헤더 4행 통합
     const noteTh = document.createElement('th');
-    noteTh.innerText = "비고";
-    noteTh.className = 'col-note';
-    noteTh.rowSpan = 4; // 소진율처럼 4행 합침
+    noteTh.innerText = "비고"; noteTh.className = 'col-note';
     dateRow.appendChild(noteTh);
-
-    // 하단 푸터(통계) 줄 끝부분 정렬 맞춤
-    const vNoteTd = vRow.insertCell(-1); vNoteTd.className = 'col-note';
-    const wNoteTd = wRow.insertCell(-1); wNoteTd.className = 'col-note';
+    weekRow.appendChild(document.createElement('th'));
+    holidayRow.appendChild(document.createElement('th'));
+    vRow.insertCell(-1); wRow.insertCell(-1);
 
     const list = (currentType === 'manager') ? masterData.manager : masterData.staff;
     list.forEach(p => {
@@ -86,7 +82,7 @@ function renderTable(attendance) {
         const noteTd = document.createElement('td');
         const noteMatch = attendance.find(r => r[0] == currentMonth && r[1] == currentType && r[2] == p.name && r[3] == 32);
         noteTd.className = 'col-note';
-        noteTd.innerHTML = `<input type="text" value="${noteMatch ? noteMatch[4] : ""}" placeholder="비고 입력" onchange="saveData(${currentMonth}, '${currentType}', '${p.name}', 32, this.value)">`;
+        noteTd.innerHTML = `<input type="text" value="${noteMatch ? noteMatch[4] : ""}" placeholder="비고" onchange="saveData(${currentMonth}, '${currentType}', '${p.name}', 32, this.value)">`;
         tr.appendChild(noteTd);
         tbody.appendChild(tr);
     });
