@@ -10,7 +10,7 @@ let lastFetchedAttendance = [];
 
 window.onload = () => { renderMonthPicker(); loadAllData(); };
 
-// [기존] 엑셀 저장 기능 (디자인 보존)
+// [기존] 엑셀 버튼 디자인 유지
 function addExcelButton() {
     if (document.getElementById('btn-excel')) return;
     const container = document.getElementById('month-picker');
@@ -40,7 +40,7 @@ function downloadExcel() {
     document.body.removeChild(link);
 }
 
-// [기존] 월별 시트 열 참조 로직 (E열~P열)
+// [기존] 월별 시트 열 참조 로직 유지 (E열~P열)
 async function loadAllData() {
     try {
         const response = await fetch(GAN_URL);
@@ -48,7 +48,6 @@ async function loadAllData() {
         masterData.manager = []; masterData.staff = [];
         
         if(res.config) {
-            // E열(index 4)부터 월별 미사용 데이터 시작
             const targetColumnIndex = 4 + (currentMonth - 1); 
             res.config.slice(1).forEach(row => {
                 const bName = row[1] || "";
@@ -88,7 +87,7 @@ function renderTable(attendance) {
     const holidayInfo = { 1: { 1: "신정" }, 2: { 16: "설날", 17: "설날", 18: "설날" }, 3: { 1: "삼일절", 2: "대체공휴일" }, 5: { 5: "어린이날", 24: "석가탄신일", 25: "대체공휴일" }, 6: { 6: "현충일" }, 8: { 15: "광복절", 17: "대체공휴일" }, 9: { 24: "추석", 25: "추석", 26: "추석", 28: "대체공휴일" }, 10: { 3: "개천절", 5: "대체공휴일", 9: "한글날" }, 12: { 25: "성탄절" } }[currentMonth] || {};
     const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
 
-    // 1~31일 헤더 생성
+    // 1~31일 헤더 생성 (기존 디자인 유지)
     for (let d = 1; d <= 31; d++) {
         const dateObj = new Date(2026, currentMonth - 1, d);
         const isExist = dateObj.getMonth() === currentMonth - 1;
@@ -106,10 +105,11 @@ function renderTable(attendance) {
         wRow.insertCell(-1).id = `work-count-${d}`;
     }
 
-    // [추가] 비고 열 헤더 (디자인 유지를 위해 31일 바로 옆에 생성)
+    // [추가] 비고 열 헤더 (글자 길이에 따라 자동 확장되도록 설정)
     const noteTh = document.createElement('th');
-    noteTh.innerText = "비고 (출장 사유 등)";
+    noteTh.innerText = "비고";
     noteTh.style.minWidth = "150px"; 
+    noteTh.style.width = "auto";
     dateRow.appendChild(noteTh);
     weekRow.appendChild(document.createElement('th'));
     holidayRow.appendChild(document.createElement('th'));
@@ -121,7 +121,6 @@ function renderTable(attendance) {
         tr.setAttribute('data-person', p.name);
         tr.innerHTML = `<td>${p.branch}</td><td>${p.name}</td><td>${p.req}</td><td>${p.unused}</td><td id="rem-${p.name}">${p.unused}</td><td id="rate-${p.name}">0%</td>`;
         
-        // 1~31일 셀 생성 및 데이터 매칭
         for (let i = 1; i <= 31; i++) {
             const dateObj = new Date(2026, currentMonth - 1, i);
             const isExist = dateObj.getMonth() === currentMonth - 1;
@@ -139,11 +138,12 @@ function renderTable(attendance) {
             tr.appendChild(td);
         }
 
-        // [추가] 비고 입력 셀 (day=32로 처리하여 저장)
+        // [추가] 비고 입력 칸 (입력 길이에 따라 칸이 유동적으로 확장됨)
         const noteTd = document.createElement('td');
         const noteMatch = attendance.find(r => r[0] == currentMonth && r[1] == currentType && r[2] == p.name && r[3] == 32);
         const noteValue = noteMatch ? noteMatch[4] : "";
-        noteTd.innerHTML = `<input type="text" value="${noteValue}" style="width:90%; border:none; background:transparent; font-size:11px; text-align:left; outline:none;" placeholder="내용 입력">`;
+        noteTd.style.whiteSpace = "nowrap"; // 줄바꿈 방지
+        noteTd.innerHTML = `<input type="text" value="${noteValue}" style="width:100%; min-width:140px; border:none; background:transparent; font-size:11px; outline:none; text-align:left;" placeholder="내용 입력">`;
         const input = noteTd.querySelector('input');
         input.onchange = function() {
             saveData(currentMonth, currentType, p.name, 32, this.value);
@@ -195,7 +195,7 @@ function showDropdown(cell) {
     select.onblur = function() { if (cell.contains(this)) cell.innerText = this.value; };
 }
 
-// [기존] 반반차 0.25 계산 로직 유지
+// [기존] 반반차(0.25) 계산 기능 유지
 function updateCounts() {
     const rows = document.querySelectorAll('#attendance-body tr');
     const dailyVacationCount = Array(32).fill(0);
