@@ -10,7 +10,6 @@ let lastFetchedAttendance = [];
 
 window.onload = () => { renderMonthPicker(); loadAllData(); };
 
-// [기존] 엑셀 저장 (디자인/기능 보존)
 function addExcelButton() {
     if (document.getElementById('btn-excel')) return;
     const container = document.getElementById('month-picker');
@@ -40,7 +39,6 @@ function downloadExcel() {
     document.body.removeChild(link);
 }
 
-// [기존] 월별 시트 로직 유지
 async function loadAllData() {
     try {
         const response = await fetch(GAN_URL);
@@ -58,7 +56,7 @@ async function loadAllData() {
         }
         lastFetchedAttendance = res.attendance || [];
         renderTable(lastFetchedAttendance);
-    } catch (e) { console.error("로드 실패"); }
+    } catch (e) { console.error("데이터 로드 실패"); }
 }
 
 function renderTable(attendance) {
@@ -85,6 +83,12 @@ function renderTable(attendance) {
         const thD = document.createElement('th');
         const thW = document.createElement('th');
         const thH = document.createElement('th');
+        
+        // 날짜 칸은 고정된 클래스를 부여
+        thD.className = 'col-day';
+        thW.className = 'col-day';
+        thH.className = 'col-day';
+
         if (isExist) {
             const dayIdx = dateObj.getDay();
             const hName = holidayInfo[d] || "";
@@ -96,10 +100,11 @@ function renderTable(attendance) {
         wRow.insertCell(-1).id = `work-count-${d}`;
     }
 
-    // [비고 헤더] 이탈 방지를 위해 스타일 강화
+    // [비고 헤더] 내용에 따라 늘어나도록 설정
     const noteTh = document.createElement('th');
     noteTh.innerText = "비고";
-    noteTh.style.cssText = "width: auto; min-width: 250px; white-space: nowrap;"; 
+    noteTh.style.minWidth = "200px";
+    noteTh.style.width = "auto";
     dateRow.appendChild(noteTh);
     weekRow.appendChild(document.createElement('th'));
     holidayRow.appendChild(document.createElement('th'));
@@ -128,14 +133,25 @@ function renderTable(attendance) {
             tr.appendChild(td);
         }
 
-        // [핵심 수정] 비고 입력 칸: 글자가 표 밖으로 나가는 현상 차단
+        // [비고 칸] 짤리지 않고 가로로 길어지게 설정
         const noteTd = document.createElement('td');
         const noteMatch = attendance.find(r => r[0] == currentMonth && r[1] == currentType && r[2] == p.name && r[3] == 32);
         const noteValue = noteMatch ? noteMatch[4] : "";
-        noteTd.style.cssText = "text-align: left; padding-left: 5px; width: auto; min-width: 250px; overflow: hidden;";
         
-        noteTd.innerHTML = `<input type="text" value="${noteValue}" style="width: 100%; border: none; background: transparent; font-size: 11px; outline: none;" placeholder="내용 입력">`;
+        noteTd.style.textAlign = "left";
+        noteTd.style.padding = "0 5px";
+        noteTd.style.whiteSpace = "nowrap"; // 줄바꿈 방지
+
+        // 글자 수에 따라 input의 size가 조절되어 칸 자체가 늘어남
+        const displaySize = noteValue.length > 20 ? noteValue.length : 20;
+        noteTd.innerHTML = `<input type="text" value="${noteValue}" size="${displaySize}"
+            style="border:none; background:transparent; font-size:11px; outline:none; font-family:inherit; width:auto;" 
+            placeholder="내용 입력">`;
+        
         const input = noteTd.querySelector('input');
+        input.oninput = function() {
+            this.size = this.value.length > 20 ? this.value.length : 20;
+        };
         input.onchange = function() {
             saveData(currentMonth, currentType, p.name, 32, this.value);
         };
