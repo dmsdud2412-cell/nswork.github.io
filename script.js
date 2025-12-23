@@ -1,12 +1,8 @@
 const GAN_URL = "https://script.google.com/macros/s/AKfycby42R57TUGVePyKRxfsFqeLuinCy0rxIVZudX2-Z1tERUpYCxJWw50EU0ZsqIrVGlWy/exec";
-let currentType = 'manager'; 
-let currentMonth = 1; 
-let masterData = { manager: [], staff: [] }; 
-let lastFetchedAttendance = [];
+let currentType = 'manager'; let currentMonth = 1; let masterData = { manager: [], staff: [] }; let lastFetchedAttendance = [];
 
 window.onload = () => { renderMonthPicker(); loadAllData(); };
 
-// 데이터 로드
 async function loadAllData() {
     try {
         const response = await fetch(GAN_URL);
@@ -25,7 +21,6 @@ async function loadAllData() {
     } catch (e) { console.error("데이터 로드 실패"); }
 }
 
-// 테이블 렌더링
 function renderTable(attendance) {
     document.getElementById('month-title').innerText = `${currentMonth}월 근태 현황`;
     const tbody = document.getElementById('attendance-body');
@@ -35,8 +30,7 @@ function renderTable(attendance) {
     const vRow = document.getElementById('row-vacation');
     const wRow = document.getElementById('row-working');
 
-    // 초기화
-    tbody.innerHTML = ''; dateRow.innerHTML = ''; weekRow.innerHTML = ''; holidayRow.innerHTML = '';
+    dateRow.innerHTML = ''; weekRow.innerHTML = ''; holidayRow.innerHTML = '';
     while(vRow.cells.length > 1) vRow.deleteCell(1);
     while(wRow.cells.length > 1) wRow.deleteCell(1);
 
@@ -46,26 +40,22 @@ function renderTable(attendance) {
     for (let d = 1; d <= 31; d++) {
         const dateObj = new Date(2026, currentMonth - 1, d);
         const isExist = dateObj.getMonth() === currentMonth - 1;
-        const thD = document.createElement('th');
-        const thW = document.createElement('th');
-        const thH = document.createElement('th');
+        const thD = document.createElement('th'); const thW = document.createElement('th'); const thH = document.createElement('th');
         if (isExist) {
-            const dayIdx = dateObj.getDay();
-            const hName = holidayInfo[d] || "";
+            const dayIdx = dateObj.getDay(); const hName = holidayInfo[d] || "";
             thD.innerText = d; thW.innerText = weekDays[dayIdx]; thH.innerText = hName;
             if(dayIdx === 0 || dayIdx === 6 || hName !== "") [thD, thW, thH].forEach(el => el.classList.add('txt-red'));
         }
         dateRow.appendChild(thD); weekRow.appendChild(thW); holidayRow.appendChild(thH);
         vRow.insertCell(-1).id = `vac-count-${d}`; wRow.insertCell(-1).id = `work-count-${d}`;
     }
-    vRow.insertCell(-1); wRow.insertCell(-1); // 비고란 정렬용
+    vRow.insertCell(-1); wRow.insertCell(-1);
 
     const list = (currentType === 'manager') ? masterData.manager : masterData.staff;
     list.forEach(p => {
         const tr = document.createElement('tr');
         tr.setAttribute('data-person', p.name);
         tr.innerHTML = `<td>${p.branch}</td><td>${p.name}</td><td>${p.req}</td><td>${p.unused}</td><td id="rem-${p.name}">${p.unused}</td><td id="rate-${p.name}">0%</td>`;
-        
         for (let i = 1; i <= 31; i++) {
             const td = document.createElement('td'); td.className = 'at-cell col-day';
             const dateObj = new Date(2026, currentMonth - 1, i);
@@ -82,20 +72,18 @@ function renderTable(attendance) {
         const noteTd = document.createElement('td');
         const noteMatch = attendance.find(r => r[0] == currentMonth && r[1] == currentType && r[2] == p.name && r[3] == 32);
         noteTd.className = 'col-note';
-        noteTd.innerHTML = `<input type="text" value="${noteMatch ? noteMatch[4] : ""}" placeholder="비고 입력" onchange="saveData(${currentMonth}, '${currentType}', '${p.name}', 32, this.value)">`;
+        noteTd.innerHTML = `<input type="text" value="${noteMatch ? noteMatch[4] : ""}" placeholder="비고" onchange="saveData(${currentMonth}, '${currentType}', '${p.name}', 32, this.value)">`;
         tr.appendChild(noteTd);
         tbody.appendChild(tr);
     });
     updateCounts();
 }
 
-// 상태별 색상
 function applyStatusColor(cell, status) {
     cell.style.color = (status === '연차' || status === '휴가') ? "#d32f2f" : (status.includes('반차') ? "#ef6c00" : (status === '반반차' ? "#4caf50" : ""));
     cell.style.fontWeight = "bold";
 }
 
-// 드롭다운 표시
 function showDropdown(cell, day, name) {
     if (cell.querySelector('select')) return;
     const select = document.createElement('select');
@@ -112,12 +100,8 @@ function showDropdown(cell, day, name) {
     cell.innerHTML = ''; cell.appendChild(select); select.focus();
 }
 
-// 저장 기능
-async function saveData(m, t, n, d, s) { 
-    fetch(GAN_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ month: m, type: t, name: n, day: d, status: s }) }); 
-}
+async function saveData(m, t, n, d, s) { fetch(GAN_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ month: m, type: t, name: n, day: d, status: s }) }); }
 
-// 인원 및 소진율 계산
 function updateCounts() {
     const rows = document.querySelectorAll('#attendance-body tr');
     const dailyVacation = Array(33).fill(0);
@@ -143,7 +127,6 @@ function updateCounts() {
     }
 }
 
-// 월 선택기
 function renderMonthPicker() {
     const container = document.getElementById('month-picker'); container.innerHTML = '';
     for (let m = 1; m <= 12; m++) {
@@ -154,7 +137,6 @@ function renderMonthPicker() {
     }
 }
 
-// 탭 전환
 function switchTab(type) {
     currentType = type;
     document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
@@ -162,10 +144,8 @@ function switchTab(type) {
     renderTable(lastFetchedAttendance);
 }
 
-// 엑셀 다운로드
 function downloadExcel() {
     const table = document.getElementById("attendance-table");
     const wb = XLSX.utils.table_to_book(table, {sheet: "근태현황"});
-    const fileName = `${currentMonth}월_근태현황_${currentType === 'manager' ? '지점장' : '직원'}.xlsx`;
-    XLSX.writeFile(wb, fileName);
+    XLSX.writeFile(wb, `${currentMonth}월_근태현황_${currentType}.xlsx`);
 }
