@@ -1,4 +1,4 @@
-/* [어제 디자인 그대로] */
+/* [디자인 보존] 어제와 동일한 기본 스타일 */
 body { font-family: 'Pretendard', sans-serif; margin: 10px; background-color: #f8f9fa; }
 .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
 
@@ -8,20 +8,29 @@ body { font-family: 'Pretendard', sans-serif; margin: 10px; background-color: #f
 .month-btn { padding: 5px 10px; border: 1px solid #ccc; background: white; cursor: pointer; border-radius: 3px; font-size: 11px; }
 .month-btn.active { background: #d32f2f !important; color: white !important; border: none; }
 
-/* 테이블 레이아웃 */
+/* 테이블 레이아웃 설정 */
 .table-container { background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow: hidden; }
-table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 11px; }
+table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    table-layout: fixed; /* 설정한 너비를 강제로 고정 */
+    font-size: 11px;
+}
 th, td { border: 1px solid #ededed; padding: 2px 0; text-align: center; height: 22px; }
 thead th { background-color: #fcfcfc; font-weight: bold; }
 
 /* -----------------------------------------------------------
-   [비고 칸 대폭 확장]
-   비고란(.col-note)을 55%로 늘려 아주 넓게 만들었습니다.
+   [핵심: 칸 크기 비율 설정]
+   전체 화면(100%)을 칸 수에 맞춰 정밀 배분했습니다.
 ----------------------------------------------------------- */
-.col-info { width: 5%; }      /* 지점, 성명 */
-.col-stat { width: 2.8%; }    /* 연차 통계 */
-.col-day  { width: 1%; }       /* 1~31일 (더 촘촘하게 붙임) */
-.col-note { width: 55%; }     /* ★비고 (가장 넓게 확장) */
+.col-info { width: 6%; }      /* 지점, 성명 칸 */
+.col-stat { width: 3.5%; }    /* 필수/전월/남은/소진율 칸 */
+
+/* 날짜 1~31일: 한 칸당 약 1.6% (한 눈에 보이도록 최적화) */
+.col-day  { width: 1.6%; }    
+
+/* 비고: 날짜 칸의 약 3.5배 크기 (넉넉하게 사유 입력 가능) */
+.col-note { width: 5.5%; }    
 
 /* 강조 색상 */
 .txt-red { color: #d32f2f !important; font-weight: bold; }
@@ -29,7 +38,7 @@ thead th { background-color: #fcfcfc; font-weight: bold; }
 .at-cell { cursor: pointer; transition: background 0.2s; }
 .at-cell:hover { background-color: #f1f3f5; }
 
-/* 입력창 스타일 */
+/* 입력창 및 드롭다운 스타일 */
 .col-note input, select { 
     width: 100%; border: none; background: transparent; 
     font-size: 11px; outline: none; padding: 0 8px; box-sizing: border-box; 
