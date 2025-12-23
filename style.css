@@ -1,113 +1,42 @@
-/* [기존 디자인 및 레이아웃 유지] */
-body { 
-    font-family: 'Pretendard', sans-serif; 
-    margin: 10px; 
-    background-color: #f8f9fa; 
-}
+body { font-family: 'Pretendard', sans-serif; margin: 10px; background-color: #f8f9fa; }
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.tabs button { padding: 8px 20px; border: 1px solid #ddd; background: #eee; cursor: pointer; border-radius: 5px; font-weight: bold; }
+.tabs button.active { background: #d32f2f; color: white; border-color: #d32f2f; }
+.month-btn { padding: 5px 10px; border: 1px solid #ccc; background: white; cursor: pointer; border-radius: 3px; font-size: 11px; }
+.month-btn.active { background: #d32f2f !important; color: white !important; border: none; }
 
-.header { 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    margin-bottom: 10px; 
-}
+.table-container { background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow: hidden; }
+table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 11px; }
+th, td { border: 1px solid #ededed; padding: 2px 0; text-align: center; height: 22px; position: relative; } /* position 추가로 드롭다운 고정 */
+thead th { background-color: #fcfcfc; font-weight: bold; }
 
-.tabs button { 
-    padding: 8px 20px; 
-    border: 1px solid #ddd; 
-    background: #eee; 
-    cursor: pointer; 
-    border-radius: 5px; 
-    font-weight: bold; 
-}
-
-.tabs button.active { 
-    background: #d32f2f; 
-    color: white; 
-    border-color: #d32f2f; 
-}
-
-.month-btn { 
-    padding: 5px 10px; 
-    border: 1px solid #ccc; 
-    background: white; 
-    cursor: pointer; 
-    border-radius: 3px; 
-    font-size: 11px; 
-}
-
-.month-btn.active { 
-    background: #d32f2f !important; 
-    color: white !important; 
-    border: none; 
-}
-
-.table-container { 
-    background: white; 
-    padding: 10px; 
-    border-radius: 8px; 
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
-    overflow: hidden; 
-}
-
-table { 
-    width: 100%; 
-    border-collapse: collapse; 
-    table-layout: fixed; 
-    font-size: 11px; 
-}
-
-th, td { 
-    border: 1px solid #ededed; 
-    padding: 2px 0; 
-    text-align: center; 
-    height: 22px; 
-}
-
-thead th { 
-    background-color: #fcfcfc; 
-    font-weight: bold; 
-}
-
-/* -----------------------------------------------------------
-   [관리자님 핵심 요청: 비고란 너비 최적화]
-   지점/성명/날짜는 기존 크기를 유지하되, 
-   비고란(.col-note)을 날짜 칸의 10배인 15%로 설정하여 
-   한글 10자 이상이 시원하게 보이도록 했습니다.
------------------------------------------------------------ */
-.col-info { width: 6.5%; }    /* 지점, 성명 */
-.col-stat { width: 3.5%; }    /* 통계 정보 (필수연차 등) */
-.col-day  { width: 1.5%; }    /* 1~31일 각 날짜 칸 */
-.col-note { width: 15.0%; }   /* ★비고 (날짜 10개 칸 너비 확보) */
+/* [비율 정밀 조정] 한글 10자가 딱 보일 수 있는 비중으로 나눴습니다 */
+.col-info { width: 5.5%; }    
+.col-stat { width: 3.5%; }    
+.col-day  { width: 1.45%; }   
+.col-note { width: 12.5%; }   /* ★ "ㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇ" 길이에 최적화 */
 
 .txt-red { color: #d32f2f !important; font-weight: bold; }
 .bg-pink { background-color: #fff0f0 !important; }
 .at-cell { cursor: pointer; }
 .at-cell:hover { background-color: #f1f3f5; }
 
-/* 비고 입력창: 글자가 잘리지 않고 읽기 편하게 설정 */
-.col-note input { 
-    width: 100%; 
-    border: none; 
-    background: transparent; 
-    font-size: 11px; 
-    outline: none; 
-    padding: 0 8px; 
-    box-sizing: border-box; 
-    text-align: left; /* 사유 입력 시 왼쪽부터 정렬 */
-}
-
-.footer-row td { 
-    background-color: #f8f9fa !important; 
-    color: #333 !important; 
-    font-weight: bold; 
-}
-
-/* 드롭다운(select) 스타일 유지 */
-select {
+/* 드롭다운이 칸을 절대 벗어나지 않게 고정 */
+.at-cell select {
     width: 100%;
+    height: 100%;
     border: none;
     font-size: 11px;
-    background: #f1f3f5;
+    background: #ffffff;
     outline: none;
+    box-sizing: border-box; 
+    padding: 0;
+    margin: 0;
 }
+
+.col-note input { 
+    width: 100%; border: none; background: transparent; 
+    font-size: 11px; outline: none; padding: 0 5px; 
+    box-sizing: border-box; text-align: left; 
+}
+.footer-row td { background-color: #f8f9fa !important; color: #333 !important; font-weight: bold; }
