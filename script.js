@@ -1,7 +1,7 @@
 const GAN_URL = "https://script.google.com/macros/s/AKfycby42R57TUGVePyKRxfsFqeLuinCy0rxIVZudX2-Z1tERUpYCxJWw50EU0ZsqIrVGlWy/exec";
 let currentType = 'manager'; let currentMonth = 1; let masterData = { manager: [], staff: [] }; let lastFetchedAttendance = [];
 
-// ★ 추가: URL에서 지점명(branch) 파라미터를 읽어옵니다.
+// ★ URL에서 지점명(branch) 파라미터를 읽어옵니다.
 const urlParams = new URLSearchParams(window.location.search);
 const branchFilter = urlParams.get('branch'); 
 
@@ -16,7 +16,7 @@ async function loadAllData() {
             const targetCol = 4 + (currentMonth - 1); 
             res.config.slice(1).forEach(row => {
                 
-                // ★ 추가: URL에 지점명이 있을 경우, 해당 지점이 아니면 목록에서 제외합니다.
+                // ★ URL에 지점명이 있을 경우, 해당 지점이 아니면 목록에서 제외합니다.
                 if (branchFilter && row[1] !== branchFilter) {
                     return;
                 }
@@ -65,7 +65,10 @@ function renderTable(attendance) {
     list.forEach(p => {
         const tr = document.createElement('tr');
         tr.setAttribute('data-person', p.name);
-        tr.innerHTML = `<td>${p.branch}</td><td>${p.name}</td><td>${p.req}</td><td>${p.unused}</td><td id="rem-${p.name}">${p.unused}</td><td id="rate-${p.name}">0%</td>`;
+        
+        // ★ 전월미사용(p.unused) 칸에 id를 추가하여 나중에 updateCounts에서 제어할 수 있게 함
+        tr.innerHTML = `<td>${p.branch}</td><td>${p.name}</td><td>${p.req}</td><td id="unused-${p.name}">${p.unused}</td><td id="rem-${p.name}">${p.unused}</td><td id="rate-${p.name}">0%</td>`;
+        
         for (let i = 1; i <= 31; i++) {
             const td = document.createElement('td'); td.className = 'at-cell col-day';
             const dateObj = new Date(2026, currentMonth - 1, i);
@@ -97,7 +100,7 @@ function applyStatusColor(cell, status) {
 function showDropdown(cell, day, name) {
     if (cell.querySelector('select')) return;
     const select = document.createElement('select');
-    ['', '연차', '오전반차', '오후반차', '반반차', '휴가', '출장','교육','기타'].forEach(s => {
+    ['', '연차', '오전반차', '오후반차', '반반차', '휴가', '출장', '교육', '기타'].forEach(s => {
         const opt = document.createElement('option'); opt.value = s; opt.innerText = s || '-';
         if(s === cell.innerText) opt.selected = true;
         select.appendChild(opt);
@@ -123,20 +126,26 @@ function updateCounts() {
             if (txt === '연차') used += 1; else if (txt === '반반차') used += 0.25; else if (txt.includes('반차')) used += 0.5;
             dailyVacation[parseInt(c.getAttribute('data-day'))] += 1;
         });
-        const base = parseFloat(row.cells[3].innerText) || 0;
+        
+        const req = parseFloat(row.cells[2].innerText) || 0; // 필수연차
+        const base = parseFloat(document.getElementById(`unused-${name}`).innerText) || 0;
         const rem = base - used;
-        const remCell = document.getElementById(`rem-${name}`);
+        
+        // ★ 전월미사용 칸 처리: 필수연차가 0이면 빈칸
+        const unusedCell = document.getElementById(`unused-${name}`);
+        if(unusedCell && req === 0) unusedCell.innerText = '';
 
-        // ★ 수정: 남은 연차가 0이거나 필수 연차가 0이면 빈 칸 처리
+        // 남은 연차 칸 처리: 필수연차가 0이거나 남은 연차가 0 이하면 빈칸
+        const remCell = document.getElementById(`rem-${name}`);
         if(remCell) {
-            if (rem > 0) {
+            if (req > 0 && rem > 0) {
                 remCell.innerText = Number.isInteger(rem) ? rem : rem.toFixed(2);
             } else {
                 remCell.innerText = '';
             }
         }
 
-        const req = parseFloat(row.cells[2].innerText) || 0;
+        // 소진율 칸 처리: 필수연차가 0이거나 사용 연차가 0이면 빈칸
         const rateCell = document.getElementById(`rate-${name}`);
         if(rateCell) {
             if (req > 0 && used > 0) {
