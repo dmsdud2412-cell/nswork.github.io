@@ -126,16 +126,23 @@ function updateCounts() {
         const base = parseFloat(row.cells[3].innerText) || 0;
         const rem = base - used;
         const remCell = document.getElementById(`rem-${name}`);
-        if(remCell) remCell.innerText = Number.isInteger(rem) ? rem : rem.toFixed(2);
-        
-        // ★ 소진율 표시 조건 수정 (필수연차 0일 때 무시 및 0%일 때 빈칸 처리)
+
+        // ★ 수정: 남은 연차가 0이거나 필수 연차가 0이면 빈 칸 처리
+        if(remCell) {
+            if (rem > 0) {
+                remCell.innerText = Number.isInteger(rem) ? rem : rem.toFixed(2);
+            } else {
+                remCell.innerText = '';
+            }
+        }
+
         const req = parseFloat(row.cells[2].innerText) || 0;
         const rateCell = document.getElementById(`rate-${name}`);
         if(rateCell) {
             if (req > 0 && used > 0) {
                 rateCell.innerText = Math.floor((used / req) * 100) + '%';
             } else {
-                rateCell.innerText = ''; // 0%이거나 필수연차가 0이면 표시 안함
+                rateCell.innerText = ''; 
             }
         }
     });
