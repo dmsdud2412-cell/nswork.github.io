@@ -31,8 +31,6 @@ async function loadAllData() {
     } catch (e) { console.error("로드 실패"); }
 }
 
-// ... 이후 renderTable, applyStatusColor 등 나머지 모든 함수는 원본과 동일하게 유지됩니다.
-
 function renderTable(attendance) {
     document.getElementById('month-title').innerText = `${currentMonth}월 근태 현황`;
     const tbody = document.getElementById('attendance-body');
@@ -129,9 +127,17 @@ function updateCounts() {
         const rem = base - used;
         const remCell = document.getElementById(`rem-${name}`);
         if(remCell) remCell.innerText = Number.isInteger(rem) ? rem : rem.toFixed(2);
+        
+        // ★ 소진율 표시 조건 수정 (필수연차 0일 때 무시 및 0%일 때 빈칸 처리)
         const req = parseFloat(row.cells[2].innerText) || 0;
         const rateCell = document.getElementById(`rate-${name}`);
-        if(rateCell) rateCell.innerText = req > 0 ? Math.floor((req - rem) / req * 100) + '%' : '0%';
+        if(rateCell) {
+            if (req > 0 && used > 0) {
+                rateCell.innerText = Math.floor((used / req) * 100) + '%';
+            } else {
+                rateCell.innerText = ''; // 0%이거나 필수연차가 0이면 표시 안함
+            }
+        }
     });
     for (let d = 1; d <= 31; d++) {
         const v = document.getElementById(`vac-count-${d}`); const w = document.getElementById(`work-count-${d}`);
@@ -161,4 +167,3 @@ function downloadExcel() {
     const wb = XLSX.utils.table_to_book(table, {sheet: "근태현황"});
     XLSX.writeFile(wb, `${currentMonth}월_근태현황_${currentType}.xlsx`);
 }
-
