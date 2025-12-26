@@ -149,7 +149,7 @@ function updateCounts() {
         const rateCell = document.getElementById(`rate-${name}`);
         if(rateCell) {
             if (req > 0 && used > 0) {
-                rateCell.innerText = Math.floor((used / req) * 100) + '%';
+                rateCell.innerText = Math.floor((used / base) * 100) + '%';
             } else {
                 rateCell.innerText = ''; 
             }
@@ -183,3 +183,4 @@ function downloadExcel() {
     const wb = XLSX.utils.table_to_book(table, {sheet: "근태현황"});
     XLSX.writeFile(wb, `${currentMonth}월_근태현황_${currentType}.xlsx`);
 }
+
