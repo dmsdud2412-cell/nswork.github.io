@@ -2,13 +2,11 @@ body { font-family: 'Pretendard', sans-serif; margin: 10px; background-color: #f
 .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
 .header h1 { font-size: 20px; margin: 0; }
 
-/* 버튼 색상 유지 */
+/* 버튼 및 탭 스타일 유지 */
 .btn-excel { padding: 8px 15px; background-color: #2e7d32 !important; color: white !important; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12px; }
 .btn-excel:hover { background-color: #1b5e20 !important; }
-
 .tabs button { padding: 8px 20px; border: 1px solid #ddd; background: #eee; cursor: pointer; border-radius: 5px; font-weight: bold; }
 .tabs button.active { background: #d32f2f !important; color: white !important; border-color: #d32f2f !important; }
-
 .month-btn { padding: 5px 10px; border: 1px solid #ccc; background: white; cursor: pointer; border-radius: 3px; font-size: 11px; }
 .month-btn.active { background: #d32f2f !important; color: white !important; border: none; }
 
@@ -21,13 +19,23 @@ body { font-family: 'Pretendard', sans-serif; margin: 10px; background-color: #f
     padding: 10px; 
     border-radius: 8px; 
     box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
-    box-sizing: border-box; 
+    box-sizing: border-box;
+    /* 스크롤 시 상단 테두리가 잘려 보이지 않도록 함 */
+    scroll-padding-top: 0;
 }
 
-/* border-spacing을 0으로 하고 선이 겹치도록 설정 */
-table { width: auto; min-width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; font-size: 11px; border-top: 1px solid #ededed; border-left: 1px solid #ededed; }
+/* 틈새를 막기 위해 테두리 모델을 최적화 */
+table { 
+    width: auto; 
+    min-width: 100%; 
+    border-collapse: separate; 
+    border-spacing: 0; 
+    table-layout: fixed; 
+    font-size: 11px;
+    border: none;
+}
 
-/* 셀 설정: 틈을 막기 위해 outline 사용 */
+/* 모든 셀에 일관된 테두리 적용 */
 th, td { 
     border-right: 1px solid #ededed; 
     border-bottom: 1px solid #ededed; 
@@ -42,27 +50,31 @@ th, td {
     box-sizing: border-box;
 }
 
-/* --- 틀고정 틈 제거 핵심 설정 --- */
+/* 상단 첫 번째 줄 왼쪽 테두리 보정 */
+th:first-child, td:first-child { border-left: 1px solid #ededed; }
+thead tr:first-child th { border-top: 1px solid #ededed; }
+
+/* --- 틀고정 정밀 보정 (중요) --- */
 thead th { 
     background-color: #fcfcfc; 
     font-weight: bold; 
     position: sticky; 
-    z-index: 10; 
-    /* sticky 이동 시 배경색이 테두리를 가리지 않도록 보정 */
-    outline: 0.5px solid #ededed;
+    z-index: 10;
+    /* 틈새를 메우기 위해 배경색을 테두리 영역까지 확장 */
+    background-clip: padding-box;
 }
 
-/* 1px씩 의도적으로 겹치게(overlap) 설정하여 틈을 차단함 */
-thead tr:nth-child(1) th { top: -1px; z-index: 12; height: 40px; } /* 첫 줄은 조금 더 넉넉하게 */
-#row-dates th { top: 38px; z-index: 11; } 
-#row-weeks th { top: 73px; z-index: 11; } 
-#row-holidays th { top: 108px; z-index: 11; }
+/* 0.5px 단위로 겹치게 설정하여 흰 선을 덮어버림 */
+thead tr:nth-child(1) th { top: 0; z-index: 12; }
+#row-dates th { top: 35.5px; z-index: 11; }    /* 36px 대신 35.5px로 0.5px 겹침 */
+#row-weeks th { top: 71px; z-index: 11; }      /* 72px 대신 71px로 1px 겹침 */
+#row-holidays th { top: 106.5px; z-index: 11; } /* 108px 대신 106.5px로 1.5px 겹침 */
 
-/* 왼쪽 정보(지점, 성명 등) 열 */
+/* 지점, 성명 등 고정 열 */
 thead th[rowspan="4"] {
-    top: -1px;
+    top: 0;
     z-index: 13;
-    background-color: #fcfcfc;
+    height: 143px; /* 36*4에서 미세 조정 */
 }
 /* ------------------------ */
 
@@ -77,5 +89,5 @@ thead th[rowspan="4"] {
 .col-note input { width: 100%; height: 100%; border: none !important; background: transparent !important; font-size: 11px; outline: none !important; box-sizing: border-box; padding: 0 8px; text-align: left; }
 .at-cell select { width: 100%; height: 100%; border: none; background: transparent; font-size: 11px; outline: none; text-align-last: center; cursor: pointer; }
 
-/* 하단 합계 영역 (틀고정 안함) */
+/* 하단 합계 영역 */
 .footer-row td { background-color: #f8f9fa !important; font-weight: bold; color: #333; }
