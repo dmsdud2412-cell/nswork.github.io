@@ -24,44 +24,45 @@ body { font-family: 'Pretendard', sans-serif; margin: 10px; background-color: #f
     box-sizing: border-box; 
 }
 
-/* border-collapse를 separate로 유지하되 틈을 메움 */
-table { width: auto; min-width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; font-size: 11px; }
+/* border-spacing을 0으로 하고 선이 겹치도록 설정 */
+table { width: auto; min-width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; font-size: 11px; border-top: 1px solid #ededed; border-left: 1px solid #ededed; }
 
-/* 셀 높이를 36px로 고정하여 계산을 정확하게 만듦 */
+/* 셀 설정: 틈을 막기 위해 outline 사용 */
 th, td { 
-    border: 1px solid #ededed; 
+    border-right: 1px solid #ededed; 
+    border-bottom: 1px solid #ededed; 
     padding: 0; 
     text-align: center; 
-    height: 36px; /* 높이 고정 */
+    height: 36px; 
     position: relative; 
     white-space: normal; 
     word-break: break-all; 
     line-height: 1.2; 
     background-color: white; 
-    box-sizing: border-box; /* 테두리 포함 높이 계산 */
+    box-sizing: border-box;
 }
 
-/* --- 틀고정 정밀 보정 설정 --- */
+/* --- 틀고정 틈 제거 핵심 설정 --- */
 thead th { 
     background-color: #fcfcfc; 
     font-weight: bold; 
     position: sticky; 
     z-index: 10; 
-    /* 테두리 겹침 현상으로 인한 미세 틈 방지 */
-    border-bottom: 1px solid #ededed;
+    /* sticky 이동 시 배경색이 테두리를 가리지 않도록 보정 */
+    outline: 0.5px solid #ededed;
 }
 
-/* 각 줄의 높이 36px를 기준으로 하되, 1px씩 겹치게 설정하여 틈 제거 */
-thead tr:nth-child(1) th { top: 0; z-index: 12; height: 36px; }
-#row-dates th { top: 35px; z-index: 11; height: 36px; }      /* 36-1 */
-#row-weeks th { top: 70px; z-index: 11; height: 36px; }      /* 71-1 */
-#row-holidays th { top: 105px; z-index: 11; height: 36px; }   /* 106-1 */
+/* 1px씩 의도적으로 겹치게(overlap) 설정하여 틈을 차단함 */
+thead tr:nth-child(1) th { top: -1px; z-index: 12; height: 40px; } /* 첫 줄은 조금 더 넉넉하게 */
+#row-dates th { top: 38px; z-index: 11; } 
+#row-weeks th { top: 73px; z-index: 11; } 
+#row-holidays th { top: 108px; z-index: 11; }
 
-/* 지점, 성명 등 왼쪽 정보 열 (4줄 통합) */
+/* 왼쪽 정보(지점, 성명 등) 열 */
 thead th[rowspan="4"] {
-    top: 0;
+    top: -1px;
     z-index: 13;
-    height: 141px; /* (36 * 4) - 3 (겹침보정) */
+    background-color: #fcfcfc;
 }
 /* ------------------------ */
 
@@ -76,5 +77,5 @@ thead th[rowspan="4"] {
 .col-note input { width: 100%; height: 100%; border: none !important; background: transparent !important; font-size: 11px; outline: none !important; box-sizing: border-box; padding: 0 8px; text-align: left; }
 .at-cell select { width: 100%; height: 100%; border: none; background: transparent; font-size: 11px; outline: none; text-align-last: center; cursor: pointer; }
 
-/* 하단 합계 영역 */
+/* 하단 합계 영역 (틀고정 안함) */
 .footer-row td { background-color: #f8f9fa !important; font-weight: bold; color: #333; }
