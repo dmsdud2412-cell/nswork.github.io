@@ -1,9 +1,9 @@
-/* 기본 설정 유지 */
+/* 기본 배경 및 폰트 설정 (기존 유지) */
 body { font-family: 'Pretendard', sans-serif; margin: 10px; background-color: #f8f9fa; overflow-x: hidden; }
 .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
 .header h1 { font-size: 20px; margin: 0; }
 
-/* 버튼 색상 및 탭 스타일 유지 */
+/* 버튼 및 탭 스타일 (기존 유지) */
 .btn-excel { padding: 8px 15px; background-color: #2e7d32 !important; color: white !important; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12px; }
 .btn-excel:hover { background-color: #1b5e20 !important; }
 .tabs button { padding: 8px 20px; border: 1px solid #ddd; background: #eee; cursor: pointer; border-radius: 5px; font-weight: bold; }
@@ -11,7 +11,7 @@ body { font-family: 'Pretendard', sans-serif; margin: 10px; background-color: #f
 .month-btn { padding: 5px 10px; border: 1px solid #ccc; background: white; cursor: pointer; border-radius: 3px; font-size: 11px; }
 .month-btn.active { background: #d32f2f !important; color: white !important; border: none; }
 
-/* 테이블 컨테이너 및 레이아웃 설정 */
+/* 테이블 컨테이너 및 레이아웃 */
 .table-container { 
     width: 100%; 
     max-height: 75vh; 
@@ -22,7 +22,15 @@ body { font-family: 'Pretendard', sans-serif; margin: 10px; background-color: #f
     box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
     box-sizing: border-box; 
 }
-table { width: auto; min-width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; font-size: 11px; }
+
+table { 
+    width: auto; 
+    min-width: 100%; 
+    border-collapse: separate; 
+    border-spacing: 0; 
+    table-layout: fixed; 
+    font-size: 11px; 
+}
 
 /* 셀 공통 설정 */
 th, td { 
@@ -41,28 +49,34 @@ th, td {
 th:first-child, td:first-child { border-left: 1px solid #ededed; }
 thead tr:first-child th { border-top: 1px solid #ededed; }
 
-/* --- 빈틈 완벽 차단 틀고정 핵심 --- */
+/* --- 흰색으로 틈새를 메우는 틀고정 설정 --- */
 thead th { 
-    background-color: #fcfcfc; 
+    background-color: #fcfcfc; /* 헤더 배경색 */
     font-weight: bold; 
     position: sticky; 
     z-index: 10;
-    /* 미세한 틈을 배경색으로 메움 */
+    /* ★ 핵심: 0.5px의 오차도 배경색과 같은 색의 그림자로 덮어씌움 */
     box-shadow: 0 0 0 1px #fcfcfc; 
+    /* 테두리 선이 뭉개지지 않도록 보강 */
     outline: 0.5px solid #ededed;
 }
 
-/* 0.5px 단위 정밀 겹침 설정 */
+/* 행 위치 설정 (틈이 보이지 않도록 0.5px~1px씩 포개지게 조정) */
 thead tr:nth-child(1) th { top: 0; z-index: 12; }
 #row-dates th { top: 35.5px; z-index: 11; } 
 #row-weeks th { top: 71px; z-index: 11; } 
 #row-holidays th { top: 106.5px; z-index: 11; }
 
-/* 왼쪽 정보 열 고정 */
-thead th[rowspan="4"] { top: 0; z-index: 13; height: 142px; vertical-align: middle; }
-/* -------------------------------- */
+/* 왼쪽 정보 열 (지점, 성명 등) */
+thead th[rowspan="4"] {
+    top: 0;
+    z-index: 13;
+    height: 142px;
+    vertical-align: middle;
+}
+/* -------------------------------------- */
 
-/* 칸 너비 유지 */
+/* 칸 너비 설정 (기존 유지) */
 .col-info { width: 115px !important; }
 .col-stat { width: 55px; } 
 .col-day  { width: 45px; } 
@@ -74,5 +88,5 @@ thead th[rowspan="4"] { top: 0; z-index: 13; height: 142px; vertical-align: midd
 .col-note input { width: 100%; height: 100%; border: none !important; background: transparent !important; font-size: 11px; outline: none !important; box-sizing: border-box; padding: 0 8px; text-align: left; }
 .at-cell select { width: 100%; height: 100%; border: none; background: transparent; font-size: 11px; outline: none; text-align-last: center; cursor: pointer; }
 
-/* 하단 합계 고정 안 함 */
+/* 하단 합계 영역 */
 .footer-row td { background-color: #f8f9fa !important; font-weight: bold; color: #333; }
