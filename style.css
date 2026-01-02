@@ -32,7 +32,7 @@ table {
     font-size: 11px;
 }
 
-/* 셀 기본 설정 (이전 버전의 연한 선 색 유지) */
+/* 셀 기본 설정 (연한 선 유지) */
 th, td { 
     border: 1px solid #ededed; 
     padding: 0; 
@@ -46,10 +46,11 @@ th, td {
     box-sizing: border-box; 
 }
 
-/* ★ 소진율 칸 구분 강화 (음영 + 경계선) ★ */
+/* ★ 소진율 칸만 음영 + 오른쪽 라인 전체 강화 ★ */
 .col-stat { 
-    background-color: #f9f9f9 !important; /* 아주 연한 회색 음영 */
-    border-right: 2px solid #ddd !important; /* 1일 칸과의 경계선을 조금 더 진하고 두껍게 */
+    background-color: #f9f9f9 !important; 
+    /* 소진율 칸의 오른쪽 선만 진하고 굵게 (상단부터 하단까지 동일 적용) */
+    border-right: 2px solid #bbb !important; 
 }
 
 /* 헤더 틀고정 및 흰색 메우기 */
@@ -83,7 +84,7 @@ thead th[rowspan="4"] {
 .txt-red { color: #d32f2f !important; font-weight: bold; }
 .bg-pink { background-color: #fff0f0 !important; }
 
-/* 비고 입력창 및 Placeholder 연하게 */
+/* 비고 입력창 스타일 및 Placeholder 보정 */
 .col-note input { 
     width: 100%; height: 100%; border: none !important; background: transparent !important; 
     font-size: 11px; outline: none !important; box-sizing: border-box; padding: 0 8px; text-align: left; color: black; 
