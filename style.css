@@ -1,48 +1,37 @@
-/* 기본 배경 및 폰트 설정 (유지) */
+/* 1. 기본 배경 및 폰트 설정 (유지) */
 body { font-family: 'Pretendard', sans-serif; margin: 10px; background-color: #f8f9fa; overflow-x: hidden; }
 .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
 .header h1 { font-size: 20px; margin: 0; }
 
-/* 월 선택 버튼 스타일 (테두리 얇게 유지) */
+/* 2. 월 선택 버튼 (테두리 얇게 고정) */
 .month-btn { padding: 5px 10px; border: 1px solid #ccc !important; background: white; cursor: pointer; border-radius: 3px; font-size: 11px; }
 .month-btn.active { background: #d32f2f !important; color: white !important; border: none; }
 
-/* 버튼 및 탭 스타일 */
+/* 3. 버튼 및 탭 스타일 */
 .btn-excel { padding: 8px 15px; background-color: #2e7d32 !important; color: white !important; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12px; }
 .tabs button { padding: 8px 20px; border: 1px solid #ddd; background: #eee; cursor: pointer; border-radius: 5px; font-weight: bold; }
 .tabs button.active { background: #d32f2f !important; color: white !important; border-color: #d32f2f !important; }
 
-/* 테이블 레이아웃 및 셀 기본 설정 */
+/* 4. 테이블 레이아웃 및 셀 기본 설정 (연한 회색 선) */
 .table-container { width: 100%; max-height: 75vh; overflow: auto; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); box-sizing: border-box; }
 table { width: auto; min-width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 11px; }
-th, td { border: 1px solid #ededed; padding: 0; text-align: center; height: 36px; position: relative; background-color: white; box-sizing: border-box; }
+th, td { border: 1px solid #ededed !important; padding: 0; text-align: center; height: 36px; position: relative; background-color: white; box-sizing: border-box; }
 
-/* ---------------------------------------------------------------- */
-/* ★ 핵심 수정: 3, 4, 5번 칸 선 굵어짐 방지 및 소진율만 강조 ★ */
-
-/* 1. 필수연차(3), 전월미사용(4), 남은연차(5) 칸의 오른쪽 선을 연하게 강제 고정 */
-tr th:nth-child(3), tr td:nth-child(3),
-tr th:nth-child(4), tr td:nth-child(4),
-tr th:nth-child(5), tr td:nth-child(5) {
-    border-right: 1px solid #ededed !important;
-}
-
-/* 2. 소진율(6번째/col-stat) 칸 설정 */
+/* ★ 5. 소진율(col-stat) 오른쪽만 굵게 - 가장 안전한 방식 ★ */
 .col-stat { 
     background-color: #f9f9f9 !important; 
-    border-left: 1px solid #ededed !important; /* 왼쪽(5번과의 경계)은 연하게 */
-    border-right: 1px solid #ededed !important; /* 기본 선도 연하게 */
-    box-shadow: inset -2px 0 0 0 #bbb; /* 안쪽 그림자로 오른쪽만 굵게 표현 */
+    /* 다른 모든 테두리는 연하게 유지 */
+    border: 1px solid #ededed !important; 
+    /* 오직 안쪽 오른쪽 그림자만 활용하여 굵은 선 효과 */
+    box-shadow: inset -2px 0 0 0 #bbb !important; 
 }
 
-/* 3. 날짜/요일 행 전이 방지 */
-#row-dates th, #row-weeks th, #row-holidays th {
+/* 6. 날짜, 요일, 휴일 등 다른 모든 행에서 굵은 선/그림자 완전 제거 */
+#row-dates th, #row-weeks th, #row-holidays th, .col-day, .col-info, .col-note {
     box-shadow: none !important;
-    border-right: 1px solid #ededed !important;
 }
-/* ---------------------------------------------------------------- */
 
-/* 틀고정 설정 */
+/* 7. 틀고정 설정 (기존 유지) */
 thead th { background-color: #fcfcfc !important; font-weight: bold; position: sticky; z-index: 10; background-clip: padding-box; }
 thead tr:nth-child(1) th { top: 0; z-index: 12; }
 #row-dates th { top: 35px; z-index: 11; } 
@@ -50,18 +39,16 @@ thead tr:nth-child(1) th { top: 0; z-index: 12; }
 #row-holidays th { top: 106px; z-index: 11; }
 thead th[rowspan="4"] { top: 0; z-index: 13; background-color: #fcfcfc !important; }
 
-/* 칸 너비 유지 */
+/* 8. 칸 너비 유지 */
 .col-info { width: 115px !important; }
 .col-stat { width: 55px !important; } 
 .col-day  { width: 45px; } 
 .col-note { width: 160px; }
 
+/* 9. 기타 폰트 및 입력창 스타일 */
 .txt-red { color: #d32f2f !important; font-weight: bold; }
 .bg-pink { background-color: #fff0f0 !important; }
-
-/* 비고 안내문구 (연하게) */
 .col-note input { width: 100%; height: 100%; border: none !important; background: transparent !important; font-size: 11px; outline: none !important; box-sizing: border-box; padding: 0 8px; text-align: left; color: black; }
 .col-note input::placeholder { color: #d1d1d1 !important; opacity: 1; }
-
 .at-cell select { width: 100%; height: 100%; border: none; background: transparent; font-size: 11px; outline: none; text-align-last: center; cursor: pointer; }
 .footer-row td { background-color: #f8f9fa !important; font-weight: bold; color: #333; }
