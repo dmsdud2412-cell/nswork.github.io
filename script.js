@@ -44,7 +44,7 @@ function renderTable(attendance) {
     while(vRow.cells.length > 1) vRow.deleteCell(1);
     while(wRow.cells.length > 1) wRow.deleteCell(1);
 
-    const holidayInfo = { 1: { 1: "신정" }, 2: { 16: " ", 17: "설날", 18: " " }, 3: { 1: "삼일절", 2: "대체휴일"  }, 5: { 5: "어린이날", 24: "석가탄신일", 25: "대체휴일" }, 6: { 3: "지방선", 6: "현충일" }, 8: { 15: "광복절", 17: "대체휴"  }, 9: { 24: " ", 25: "추석"  }, 10: { 3: "개천절", 5: "대체공휴일", 9: "한글날" }, 12: { 25: "성탄절" } }[currentMonth] || {};
+    const holidayInfo = { 1: { 1: "신정" }, 2: { 16: " ", 17: "설날", 18: " " }, 3: { 1: "삼일절", 2: "대체 휴일"  }, 5: { 5: "어린이날", 24: "석가탄신일", 25: "대체 휴일" }, 6: { 3: "지방선", 6: "현충일" }, 8: { 15: "광복절", 17: "대체 휴일"  }, 9: { 24: " ", 25: "추석"  }, 10: { 3: "개천절", 5: "대체 휴일", 9: "한글날" }, 12: { 25: "성탄절", 31: "단체 연차"  } }[currentMonth] || {};
     const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
 
     for (let d = 1; d <= 31; d++) {
@@ -183,6 +183,7 @@ function downloadExcel() {
     const wb = XLSX.utils.table_to_book(table, {sheet: "근태현황"});
     XLSX.writeFile(wb, `${currentMonth}월_근태현황_${currentType}.xlsx`);
 }
+
 
 
 
