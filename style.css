@@ -19,7 +19,7 @@ th, td { border: 1px solid #ededed; padding: 0; text-align: center; height: 36px
 /* ★ 핵심 수정: 헤더와 푸터를 제외한 직원 데이터 칸(소진율)에만 음영 ★ */
 /* 6번째 칸(소진율) 중, 일반 데이터 행(td)에만 배경색을 입힙니다. */
 tbody tr td:nth-child(6) {
-    background-color: #fafafa !important; 
+    background-color: #fffde7 !important; 
 }
 
 /* 헤더 틀고정 설정 (기존 색상 및 위치 절대 유지) */
@@ -48,4 +48,5 @@ thead th[rowspan="4"] { top: 0; z-index: 13; background-color: #fcfcfc !importan
 
 /* ★ 하단 합계 영역 (기존 설정 유지) ★ */
 .footer-row td { background-color: #f8f9fa !important; font-weight: bold; color: #333; }
+
 
