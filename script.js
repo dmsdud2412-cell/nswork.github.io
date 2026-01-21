@@ -100,7 +100,7 @@ function applyStatusColor(cell, status) {
 function showDropdown(cell, day, name) {
     if (cell.querySelector('select')) return;
     const select = document.createElement('select');
-    ['', '연차', '오전반차', '오후반차', '반반차', '휴가', '출장', '교육', '기타'].forEach(s => {
+    ['', '연차', '오전 반차', '오후 반차', '반반차', '휴가', '출장', '교육', '기타'].forEach(s => {
         const opt = document.createElement('option'); opt.value = s; opt.innerText = s || '-';
         if(s === cell.innerText) opt.selected = true;
         select.appendChild(opt);
@@ -183,6 +183,7 @@ function downloadExcel() {
     const wb = XLSX.utils.table_to_book(table, {sheet: "근태현황"});
     XLSX.writeFile(wb, `${currentMonth}월_근태현황_${currentType}.xlsx`);
 }
+
 
 
 
