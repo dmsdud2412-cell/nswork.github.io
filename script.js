@@ -1,11 +1,23 @@
 const GAN_URL = "https://script.google.com/macros/s/AKfycby42R57TUGVePyKRxfsFqeLuinCy0rxIVZudX2-Z1tERUpYCxJWw50EU0ZsqIrVGlWy/exec";
-let currentType = 'manager'; let currentMonth = 1; let masterData = { manager: [], staff: [] }; let lastFetchedAttendance = [];
+let currentType = 'manager'; 
+let currentMonth = 1; 
+let masterData = { manager: [], staff: [] }; 
+let lastFetchedAttendance = [];
 
 // ★ URL에서 지점명(branch) 파라미터를 읽어옵니다.
 const urlParams = new URLSearchParams(window.location.search);
 const branchFilter = urlParams.get('branch'); 
 
-window.onload = () => { renderMonthPicker(); loadAllData(); };
+window.onload = () => { 
+    renderMonthPicker(); 
+    loadAllData(); 
+    
+    // [추가] 페이지 로드 시 버튼 텍스트를 "엑셀 변환"으로 강제 고정 (캐시 방지 필살기)
+    const excelBtn = document.querySelector('.btn-excel');
+    if (excelBtn) {
+        excelBtn.innerHTML = '📥 엑셀 변환';
+    }
+};
 
 async function loadAllData() {
     try {
@@ -15,7 +27,6 @@ async function loadAllData() {
         if(res.config) {
             const targetCol = 4 + (currentMonth - 1); 
             res.config.slice(1).forEach(row => {
-                
                 // ★ URL에 지점명이 있을 경우, 해당 지점이 아니면 목록에서 제외합니다.
                 if (branchFilter && row[1] !== branchFilter) {
                     return;
@@ -66,7 +77,6 @@ function renderTable(attendance) {
         const tr = document.createElement('tr');
         tr.setAttribute('data-person', p.name);
         
-        // ★ 전월미사용(p.unused) 칸에 id를 추가하여 나중에 updateCounts에서 제어할 수 있게 함
         tr.innerHTML = `<td>${p.branch}</td><td>${p.name}</td><td>${p.req}</td><td id="unused-${p.name}">${p.unused}</td><td id="rem-${p.name}">${p.unused}</td><td id="rate-${p.name}">0%</td>`;
         
         for (let i = 1; i <= 31; i++) {
@@ -127,15 +137,13 @@ function updateCounts() {
             dailyVacation[parseInt(c.getAttribute('data-day'))] += 1;
         });
         
-        const req = parseFloat(row.cells[2].innerText) || 0; // 필수연차
+        const req = parseFloat(row.cells[2].innerText) || 0; 
         const base = parseFloat(document.getElementById(`unused-${name}`).innerText) || 0;
         const rem = base - used;
         
-        // ★ 전월미사용 칸 처리: 필수연차가 0이면 빈칸
         const unusedCell = document.getElementById(`unused-${name}`);
         if(unusedCell && req === 0) unusedCell.innerText = '';
 
-        // 남은 연차 칸 처리: 필수연차가 0이거나 남은 연차가 0 이하면 빈칸
         const remCell = document.getElementById(`rem-${name}`);
         if(remCell) {
             if (req > 0 && rem > 0) {
@@ -145,7 +153,6 @@ function updateCounts() {
             }
         }
 
-        // 소진율 칸 처리: 필수연차가 0이거나 사용 연차가 0이면 빈칸
         const rateCell = document.getElementById(`rate-${name}`);
         if(rateCell) {
             if (req > 0 && used > 0) {
@@ -178,18 +185,9 @@ function switchTab(type) {
     renderTable(lastFetchedAttendance);
 }
 
+// ★ 엑셀 다운로드 시 파일명도 "변환"으로 수정
 function downloadExcel() {
     const table = document.getElementById("attendance-table");
     const wb = XLSX.utils.table_to_book(table, {sheet: "근태현황"});
-    XLSX.writeFile(wb, `${currentMonth}월_근태현황_${currentType}.xlsx`);
+    XLSX.writeFile(wb, `${currentMonth}월_근태현황_변환_${currentType}.xlsx`);
 }
-
-
-
-
-
-
-
-
-
-
