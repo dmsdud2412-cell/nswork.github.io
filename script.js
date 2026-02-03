@@ -1,6 +1,9 @@
 const GAN_URL = "https://script.google.com/macros/s/AKfycby42R57TUGVePyKRxfsFqeLuinCy0rxIVZudX2-Z1tERUpYCxJWw50EU0ZsqIrVGlWy/exec";
 let currentType = 'manager'; 
-let currentMonth = 1; 
+
+// ★ 이 부분을 1에서 "현재 월"을 자동으로 가져오도록 수정했습니다.
+let currentMonth = new Date().getMonth() + 1; 
+
 let masterData = { manager: [], staff: [] }; 
 let lastFetchedAttendance = [];
 
