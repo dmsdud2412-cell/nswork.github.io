@@ -1,7 +1,7 @@
 const GAN_URL = "https://script.google.com/macros/s/AKfycby42R57TUGVePyKRxfsFqeLuinCy0rxIVZudX2-Z1tERUpYCxJWw50EU0ZsqIrVGlWy/exec";
 let currentType = 'manager'; 
 
-// ★ 이 부분을 1에서 "현재 월"을 자동으로 가져오도록 수정했습니다.
+// ★ 접속한 월로 자동 고정 기능 유지
 let currentMonth = new Date().getMonth() + 1; 
 
 let masterData = { manager: [], staff: [] }; 
@@ -15,7 +15,7 @@ window.onload = () => {
     renderMonthPicker(); 
     loadAllData(); 
     
-    // [추가] 페이지 로드 시 버튼 텍스트를 "엑셀 변환"으로 강제 고정 (캐시 방지 필살기)
+    // [추가] 페이지 로드 시 버튼 텍스트를 "엑셀 변환"으로 강제 고정
     const excelBtn = document.querySelector('.btn-excel');
     if (excelBtn) {
         excelBtn.innerHTML = '📥 엑셀 변환';
@@ -30,11 +30,9 @@ async function loadAllData() {
         if(res.config) {
             const targetCol = 4 + (currentMonth - 1); 
             res.config.slice(1).forEach(row => {
-                // ★ URL에 지점명이 있을 경우, 해당 지점이 아니면 목록에서 제외합니다.
                 if (branchFilter && row[1] !== branchFilter) {
                     return;
                 }
-
                 const p = { branch: row[1] || "", name: row[2] || "", req: row[3] || 0, unused: row[targetCol] || 0 };
                 if (row[0] === 'manager') masterData.manager.push(p);
                 else masterData.staff.push(p);
@@ -79,7 +77,6 @@ function renderTable(attendance) {
     list.forEach(p => {
         const tr = document.createElement('tr');
         tr.setAttribute('data-person', p.name);
-        
         tr.innerHTML = `<td>${p.branch}</td><td>${p.name}</td><td>${p.req}</td><td id="unused-${p.name}">${p.unused}</td><td id="rem-${p.name}">${p.unused}</td><td id="rate-${p.name}">0%</td>`;
         
         for (let i = 1; i <= 31; i++) {
@@ -139,30 +136,20 @@ function updateCounts() {
             if (txt === '연차') used += 1; else if (txt === '반반차') used += 0.25; else if (txt.includes('반차')) used += 0.5;
             dailyVacation[parseInt(c.getAttribute('data-day'))] += 1;
         });
-        
         const req = parseFloat(row.cells[2].innerText) || 0; 
         const base = parseFloat(document.getElementById(`unused-${name}`).innerText) || 0;
         const rem = base - used;
-        
         const unusedCell = document.getElementById(`unused-${name}`);
         if(unusedCell && req === 0) unusedCell.innerText = '';
-
         const remCell = document.getElementById(`rem-${name}`);
         if(remCell) {
-            if (req > 0 && rem > 0) {
-                remCell.innerText = Number.isInteger(rem) ? rem : rem.toFixed(2);
-            } else {
-                remCell.innerText = '';
-            }
+            if (req > 0 && rem > 0) remCell.innerText = Number.isInteger(rem) ? rem : rem.toFixed(2);
+            else remCell.innerText = '';
         }
-
         const rateCell = document.getElementById(`rate-${name}`);
         if(rateCell) {
-            if (req > 0 && used > 0) {
-                rateCell.innerText = Math.floor((used / base) * 100) + '%';
-            } else {
-                rateCell.innerText = ''; 
-            }
+            if (req > 0 && used > 0) rateCell.innerText = Math.floor((used / base) * 100) + '%';
+            else rateCell.innerText = ''; 
         }
     });
     for (let d = 1; d <= 31; d++) {
@@ -181,14 +168,16 @@ function renderMonthPicker() {
     }
 }
 
+// ★ 탭 이동 시 데이터를 서버에서 새로 불러오도록 업데이트 기능을 추가했습니다.
 function switchTab(type) {
     currentType = type;
     document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
     document.getElementById(`btn-${type}`).classList.add('active');
-    renderTable(lastFetchedAttendance);
+    
+    // 단순 출력 대신 최신 데이터를 로드합니다.
+    loadAllData(); 
 }
 
-// ★ 엑셀 다운로드 시 파일명도 "변환"으로 수정
 function downloadExcel() {
     const table = document.getElementById("attendance-table");
     const wb = XLSX.utils.table_to_book(table, {sheet: "근태현황"});
