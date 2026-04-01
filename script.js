@@ -1,4 +1,4 @@
-const GAN_URL = "https://script.google.com/macros/s/AKfycby42R57TUGVePyKRxfsFqeLuinCy0rxIVZudX2-Z1tERUpYCxJWw50EU0ZsqIrVGlWy/exec";
+const GAN_URL = "https://script.google.com/macros/s/AKfycbwSDV2Xys39O8nHVE26kRNv-Gc5P9a4NShS4gEkODjjIat78jQDrsO43mdm5y7EnTQB/exec";
 let currentType = 'manager'; 
 
 // ★ 접속한 월로 자동 고정 기능 유지
