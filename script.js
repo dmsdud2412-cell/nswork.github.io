@@ -134,22 +134,34 @@ function updateCounts() {
         row.querySelectorAll('.at-cell').forEach(c => {
             const txt = c.innerText; if(!txt) return;
             if (txt === '연차') used += 1; else if (txt === '반반차') used += 0.25; else if (txt.includes('반차')) used += 0.5;
-            dailyVacation[parseInt(c.getAttribute('data-day'))] += 1;
+            
+            const dayNum = parseInt(c.getAttribute('data-day'));
+            if(dayNum) dailyVacation[dayNum] += 1;
         });
         const req = parseFloat(row.cells[2].innerText) || 0; 
         const base = parseFloat(document.getElementById(`unused-${name}`).innerText) || 0;
         const rem = base - used;
+        
         const unusedCell = document.getElementById(`unused-${name}`);
         if(unusedCell && req === 0) unusedCell.innerText = '';
+        
         const remCell = document.getElementById(`rem-${name}`);
         if(remCell) {
             if (req > 0 && rem > 0) remCell.innerText = Number.isInteger(rem) ? rem : rem.toFixed(2);
             else remCell.innerText = '';
         }
+        
+        // ★ 소진율 수식 수정: (필수연차 - 남은연차) / 필수연차 * 100
         const rateCell = document.getElementById(`rate-${name}`);
         if(rateCell) {
-            if (req > 0 && used > 0) rateCell.innerText = Math.floor((used / base) * 100) + '%';
-            else rateCell.innerText = ''; 
+            if (req > 0) {
+                const consumption = req - rem;
+                let rate = Math.floor((consumption / req) * 100);
+                if (rate < 0) rate = 0; // 이월분이 많아 소진량이 음수일 경우 0% 처리
+                rateCell.innerText = rate + '%';
+            } else {
+                rateCell.innerText = ''; 
+            }
         }
     });
     for (let d = 1; d <= 31; d++) {
@@ -168,13 +180,10 @@ function renderMonthPicker() {
     }
 }
 
-// ★ 탭 이동 시 데이터를 서버에서 새로 불러오도록 업데이트 기능을 추가했습니다.
 function switchTab(type) {
     currentType = type;
     document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
     document.getElementById(`btn-${type}`).classList.add('active');
-    
-    // 단순 출력 대신 최신 데이터를 로드합니다.
     loadAllData(); 
 }
 
