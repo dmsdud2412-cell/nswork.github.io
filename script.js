@@ -153,21 +153,13 @@ function updateCounts() {
         
        // ★ 소진율 수식 수정: (필수연차 - 남은연차) / 필수연차 * 100
 const rateCell = document.getElementById(`rate-${name}`);
-if(rateCell) {
+if (rateCell) {
     if (req > 0) {
+        const consumption = req - rem;
+        let rate = Math.floor((consumption / req) * 100);
 
-        let rate;
-
-        // 전월 미사용이 없고 필수연차를 모두 소진한 경우는 100% 고정
-        if (base === 0 && used >= req) {
-            rate = 100;
-        } else {
-            const consumption = req - rem;
-            rate = Math.floor((consumption / req) * 100);
-
-            if (rate < 0) rate = 0;
-            if (rate > 100) rate = 100;
-        }
+        // 0~100%로 제한
+        rate = Math.max(0, Math.min(rate, 100));
 
         rateCell.innerText = rate + '%';
     } else {
